@@ -1,22 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Chapter</title>
-</head>
-<body>
-    <h1>Edit Chapter</h1>
 
-    <form action="{{ url_for('update_chapter', chapter_id=chapter.id) }}" method="POST">
-        <label for="title">Chapter Title:</label>
-        <input type="text" id="title" name="title" value="{{ chapter.title }}" required>
+{% extends "admin/base.html" %}
+{% block content %}
 
-        <input type="hidden" name="subject_id" value="{{ chapter.subject_id }}">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-journal-plus me-2"></i>Edit chapter
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
 
-        <button type="submit">Update Chapter</button>
-    </form>
+                    <!-- Edit chapter Form -->
+                    <form action="{{ url_for('update_chapter', chapter_id=chapter.id) }}" method="POST">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Chapter Title</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="title" 
+                                name="title" 
+                                required 
+                                placeholder="Enter subject title"
+                                value="{{ chapter.title }}"
+                            >
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <input 
+                                class="form-control" 
+                                id="description" 
+                                name="description"  
+                                placeholder="Enter chapter description"
+                                value="{{ chapter.description }}"
+                            ></input>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Edit Chapter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Back to Dashboard Link -->
+            <div class="text-center mt-3">
+                <a href="{{ url_for('get_subject', subject_id=chapter.subject_id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <a href="{{ url_for('get_subject', subject_id=chapter.subject_id) }}">Back to Subject</a>
-</body>
-</html>
+{% endblock %}

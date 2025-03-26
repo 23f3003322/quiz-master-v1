@@ -1,24 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Chapter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-    <div class="container">
-        <h2>Create a New Chapter</h2>
-        
-        <form action="{{ url_for('create_chapter', subject_id=subject.id) }}" method="POST">
-            <label for="title">Chapter Title:</label>
-            <input type="text" id="title" name="title" required>
+{% extends "admin/base.html" %}
+{% block content %}
 
-            <button type="submit">Create Chapter</button>
-        </form>
 
-        <br>
-        <a href="{{ url_for('get_subject', subject_id=subject.id) }}">Back to Chapters</a>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-journal-plus me-2"></i>Create New Chapter
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Create Chapter Form -->
+                    <form action="{{ url_for('create_chapter', subject_id=subject.id) }}" method="POST">
+                        <div class="mb-3">
+                            <label for="title" class="form-label"> Title</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="title" 
+                                name="title" 
+                                required 
+                                placeholder="Enter chapter title"
+                            >
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea 
+                                class="form-control" 
+                                id="description" 
+                                name="description" 
+                                rows="4" 
+                                placeholder="Enter chapter description"
+                            ></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Create chapter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Back to subject Link -->
+            <div class="text-center mt-3">
+                <a href="{{ url_for('get_subject',subject_id=subject.id) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Subjects
+                </a>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+
+    
+{% endblock %}

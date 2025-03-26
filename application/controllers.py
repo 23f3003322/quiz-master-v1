@@ -233,3 +233,20 @@ def update_chapter(chapter_id):
     return render_template('admin/chapter/edit_chapter.html', chapter=chapter)
 
 
+
+@app.route('/admin/chapter/delete/<int:chapter_id>', methods=['GET'])
+@admin_required
+def delete_chapter(chapter_id):
+
+    chapter = Chapter.query.get(chapter_id)
+
+    if not chapter:
+        flash("Chapter not found!", "danger")
+        return redirect(url_for('admin_dash'))
+
+    # Delete the subject from the database
+    db.session.delete(chapter)
+    db.session.commit()
+
+    flash("chapter deleted successfully!", "success")
+    return redirect(url_for('admin_dash'))
