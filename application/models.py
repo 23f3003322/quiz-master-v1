@@ -19,13 +19,17 @@ class Subject(db.Model):
 class Chapter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.String(250))
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     quizzes = db.relationship('Quiz', backref='chapter', lazy=True,cascade="all, delete")
 
 class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
-    instructions = db.Column(db.Text)
+    remarks = db.Column(db.Text)
+    is_active = db.Column(db.Boolean, default=True)
+    date_of_quiz = db.Column(db.Date, nullable=False)
+    time_duration = db.Column(db.Time, nullable=False)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
     questions = db.relationship('Question', backref='quiz', lazy=True,cascade="all, delete")
     attempts = db.relationship('Scores', backref='quiz', lazy=True,cascade="all, delete")

@@ -1,0 +1,121 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-plus-circle me-2"></i>Create New Quiz
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Create Quiz Form -->
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Quiz Title</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="title" 
+                                name="title" 
+                                required 
+                                placeholder="Enter quiz title"
+                            >
+                        </div>
+
+
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date_of_quiz" class="form-label">Quiz Date</label>
+                                <input 
+                                    type="date" 
+                                    class="form-control" 
+                                    id="date_of_quiz" 
+                                    name="date_of_quiz" 
+                                    required
+                                >
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="time_duration" class="form-label">
+                                    Quiz Duration 
+                                    <span class="text-muted small">(HH:MM:SS)</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="time_duration" 
+                                        name="time_duration" 
+                                        pattern="^([0-9]{2}):([0-9]{2}):([0-9]{2})$" 
+                                        placeholder="00:45:00" 
+                                        required
+                                        title="Duration in HH:MM:SS format"
+                                    >
+                                </div>
+                                <div class="form-text">
+                                    Example: 00:45:00 for 45 minutes
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="remarks" class="form-label">Remarks (Optional)</label>
+                            <textarea 
+                                class="form-control" 
+                                id="remarks" 
+                                name="remarks" 
+                                rows="3" 
+                                placeholder="Enter any additional instructions or remarks"
+                            ></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input" 
+                                    type="checkbox" 
+                                    id="is_active" 
+                                    name="is_active" 
+                                    checked
+                                >
+                                <label class="form-check-label" for="is_active">
+                                    Make this quiz active
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Create Quiz
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('admin_dash') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

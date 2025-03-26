@@ -2,6 +2,7 @@ from flask import Flask,render_template,redirect,request, session, flash , url_f
 from flask import current_app as app
 from functools import wraps
 from .models import *
+from datetime import datetime
 from werkzeug.security import check_password_hash,generate_password_hash
 
 
@@ -212,11 +213,12 @@ def create_chapter(subject_id):
 
 
 
-# @app.route('/admin/subject/<int:subject_id>/chapters', methods=['GET'])
-# @admin_required
-# def get_chapters(subject_id):
-#     subject = Subject.query.get_or_404(subject_id)
-#     return render_template('admin/chapters.html', subject=subject, chapters=subject.chapters)
+@app.route('/admin/chapter/<int:chapter_id>', methods=['GET'])
+@admin_required
+def get_chapter(chapter_id):
+    chapter = Chapter.query.get_or_404(chapter_id)
+    Quizes = Quiz.query.filter_by(chapter_id=chapter.id).all() 
+    return render_template('admin/chapter/view_chapter.html',  chapter=chapter,quizes=Quizes)
 
 
 @app.route('/admin/chapter/update/<int:chapter_id>', methods=['GET', 'POST'])
@@ -246,6 +248,96 @@ def delete_chapter(chapter_id):
 
     # Delete the subject from the database
     db.session.delete(chapter)
+    db.session.commit()
+
+    flash("chapter deleted successfully!", "success")
+    return redirect(url_for('admin_dash'))
+
+
+@app.route('/admin/chapter/<int:chapter_id>/quiz/new', methods=['GET', 'POST'])
+@admin_required
+def create_quiz(chapter_id):
+    chapter = Chapter.query.get_or_404(chapter_id)
+
+    if request.method == 'POST':
+        print("post request")
+        title = request.form['title']
+        remarks = request.form.get('remarks', '')  # Optional
+        date_of_quiz = request.form['date_of_quiz']
+        time_duration = request.form['time_duration']
+        is_active = request.form.get('is_active', 'false') == 'true'  # Convert checkbox to boolean
+
+        print(date_of_quiz)
+        print(time_duration)
+        # Convert date and time from string to Python Date & Time objects
+        try:
+            date_of_quiz = datetime.strptime(date_of_quiz, '%Y-%m-%d').date()
+            time_duration = datetime.strptime(time_duration, '%H:%M:%S').time()
+        except ValueError:
+            flash('Invalid date or time format', 'danger')
+            return redirect(url_for('create_quiz'))
+
+        # Create new Quiz instance
+        new_quiz = Quiz(
+            title=title,
+            remarks=remarks,
+            date_of_quiz=date_of_quiz,
+            time_duration=time_duration,
+            chapter_id=chapter_id,
+            is_active=is_active
+        )
+
+        # Add to database
+        db.session.add(new_quiz)
+        db.session.commit()
+
+        flash('Quiz created successfully!', 'success') 
+        return redirect(url_for('get_chapter',chapter_id=chapter_id))
+
+    return render_template('admin/quiz/create_quiz.html', chapter=chapter)
+
+
+
+
+@app.route('/admin/quiz/update/<int:quiz_id>', methods=['GET', 'POST'])
+def update_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)  # Fetch quiz or return 404 if not found
+
+    if request.method == 'POST':
+        quiz.title = request.form['title']
+        quiz.remarks = request.form['remarks']
+        quiz.is_active = request.form.get('is_active') == 'on'  # Checkbox handling
+
+        # Parse date and time separately
+        date_str = request.form['date_of_quiz']
+        time_str = request.form['time_duration']
+
+        try:
+            quiz.date_of_quiz = datetime.strptime(date_str, "%Y-%m-%d").date()
+            quiz.time_duration = datetime.strptime(time_str, "%H:%M:%S").time()
+        except ValueError:
+            flash("Invalid date or time format. Use YYYY-MM-DD for date and HH:MM:SS for time.", "danger")
+            return redirect(request.url)
+
+        db.session.commit()
+        flash('Quiz updated successfully!', 'success')
+        return redirect(url_for('get_chapter',chapter_id=quiz.chapter_id))  # Redirect to the dashboard or quiz list
+
+    return render_template('admin/quiz/edit_quiz.html', quiz=quiz)
+
+
+@app.route('/admin/quiz/delete/<int:quiz_id>', methods=['GET'])
+@admin_required
+def delete_quiz(quiz_id):
+
+    quiz = Quiz.query.get(quiz_id)
+
+    if not quiz:
+        flash("Chapter not found!", "danger")
+        return redirect(url_for('admin_dash'))
+
+    # Delete the subject from the database
+    db.session.delete(quiz)
     db.session.commit()
 
     flash("chapter deleted successfully!", "success")
