@@ -14,28 +14,28 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(250))
-    chapters = db.relationship('Chapter', backref='subject', lazy=True)
+    chapters = db.relationship('Chapter', backref='subject', lazy=True,cascade="all, delete")
 
 class Chapter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
-    quizzes = db.relationship('Quiz', backref='chapter', lazy=True)
+    quizzes = db.relationship('Quiz', backref='chapter', lazy=True,cascade="all, delete")
 
 class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     instructions = db.Column(db.Text)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
-    questions = db.relationship('Question', backref='quiz', lazy=True)
-    attempts = db.relationship('Scores', backref='quiz', lazy=True)
+    questions = db.relationship('Question', backref='quiz', lazy=True,cascade="all, delete")
+    attempts = db.relationship('Scores', backref='quiz', lazy=True,cascade="all, delete")
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question_text = db.Column(db.Text, nullable=False)
     question_type = db.Column(db.String(10))  # 'msq' or 'mcq'
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
-    options = db.relationship('Option', backref='question', lazy=True)
+    options = db.relationship('Option', backref='question', lazy=True,cascade="all, delete")
 
 class Option(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,7 +50,7 @@ class Scores(db.Model):
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     time_stamp_of_attempt = db.Column(db.DateTime, nullable=False)
     total_scored = db.Column(db.Float)
-    answers = db.relationship('UserAnswer', backref='attempt', lazy=True)
+    answers = db.relationship('UserAnswer', backref='attempt', lazy=True,cascade="all, delete")
 
 
 class UserAnswer(db.Model):

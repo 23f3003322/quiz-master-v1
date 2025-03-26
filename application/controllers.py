@@ -92,10 +92,144 @@ def user_dash():
 @app.route("/admin")
 @admin_required
 def admin_dash():
+    subjects = Subject.query.all() 
     # this_user = User.query.filter_by(type="admin").first()
     # all_info = Info.query.all()
     # users= len(User.query.all())-1
     # requests = len(Info.query.filter_by(atr_value="requested").all())
     # generated = len(Info.query.filter_by(atr_value="generated").all())
     # return render_template("admin_dash.html", this_user=this_user, all_info=all_info,users=users,requests=requests,generated=generated)
-    return render_template("admin/admin_dashboard.html")
+    return render_template("admin/admin_dashboard.html",subjects=subjects)
+
+
+
+
+@app.route('/admin/subject/new', methods=['GET','POST'])
+# @admin_required
+
+def create_subject():
+    if request.method == 'POST':
+        subject_title = request.form.get('title')
+        subject_description = request.form.get('description')
+
+        # Check if the subject already exists
+        existing_subject = Subject.query.filter_by(title=subject_title).first()
+        if existing_subject:
+            flash("Subject already exists!", "warning")
+            return redirect(url_for('create_subject'))
+
+        # Create and save new subject
+        new_subject = Subject(title=subject_title, description=subject_description)
+        db.session.add(new_subject)
+        db.session.commit()
+
+        flash("Subject created successfully!", "success")
+        return redirect(url_for('admin_dash')) 
+    
+    return render_template('admin/create_subject.html') 
+
+
+@app.route('/admin/subject/update/<int:subject_id>', methods=['GET','POST'])
+@admin_required
+def update_subject(subject_id):
+    print(subject_id)
+    subject = Subject.query.get(subject_id)
+    print(subject.title)
+    print(subject.description)
+
+    if request.method=="POST":
+        if not subject:
+            flash("Subject not found!", "danger")
+            return redirect(url_for('admin_Dash'))
+
+        # Get form data
+        title = request.form.get('title')
+        description = request.form.get('description')
+
+        if not title:
+            flash("Title is required!", "danger")
+            return redirect(url_for('update_subject', subject_id=subject_id))
+
+        # Update subject details
+        subject.title = title
+        subject.description = description
+        db.session.commit()
+
+        flash("Subject updated successfully!", "success")
+        return redirect(url_for('admin_dash'))
+
+    return render_template('admin/edit_subject.html', subject=subject)
+
+
+@app.route('/admin/subject/delete/<int:subject_id>', methods=['GET'])
+@admin_required
+def delete_subject(subject_id):
+
+    subject = Subject.query.get(subject_id)
+
+    if not subject:
+        flash("Subject not found!", "danger")
+        return redirect(url_for('admin_dash'))
+
+    # Delete the subject from the database
+    db.session.delete(subject)
+    db.session.commit()
+
+    flash("Subject deleted successfully!", "success")
+    return redirect(url_for('admin_dash'))
+
+
+@app.route('/admin/subject/<int:subject_id>', methods=['GET'])
+@admin_required
+def get_subject(subject_id):
+    subject = Subject.query.get_or_404(subject_id)  # Fetch subject by ID
+    chapters = Chapter.query.filter_by(subject_id=subject.id).all() 
+    return render_template('admin/view_subject.html', subject=subject, chapters=chapters)
+
+
+
+
+@app.route('/admin/subject/<int:subject_id>/chapter/new', methods=['GET', 'POST'])
+@admin_required
+def create_chapter(subject_id):
+    subject = Subject.query.get_or_404(subject_id)
+
+    if request.method == 'POST':
+        title = request.form.get('title')
+
+        if not title:
+            flash('Title is required', 'danger')
+            return redirect(url_for('create_chapter', subject_id=subject_id))
+
+        new_chapter = Chapter(title=title, subject_id=subject_id)
+        db.session.add(new_chapter)
+        db.session.commit()
+        flash('Chapter created successfully!', 'success')
+        return redirect(url_for('get_subject',subject_id=subject_id))
+
+    return render_template('admin/chapter/create_chapter.html', subject=subject)
+
+
+
+
+# @app.route('/admin/subject/<int:subject_id>/chapters', methods=['GET'])
+# @admin_required
+# def get_chapters(subject_id):
+#     subject = Subject.query.get_or_404(subject_id)
+#     return render_template('admin/chapters.html', subject=subject, chapters=subject.chapters)
+
+
+@app.route('/admin/chapter/update/<int:chapter_id>', methods=['GET', 'POST'])
+@admin_required
+def update_chapter(chapter_id):
+    chapter = Chapter.query.get_or_404(chapter_id)
+
+    if request.method == 'POST':
+        chapter.title = request.form.get('title')
+        db.session.commit()
+        flash('Chapter updated successfully!', 'success')
+        return redirect(url_for('get_subject', subject_id=chapter.subject_id))
+
+    return render_template('admin/chapter/edit_chapter.html', chapter=chapter)
+
+
