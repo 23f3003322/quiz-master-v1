@@ -10,6 +10,7 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__) 
+    app.secret_key = os.getenv("SECRETKEY")
     app.debug = True
     app.config["SQLALCHEMY_DATABASE_URI"]= "sqlite:///quizdb.sqlite3"
     db.init_app(app)
@@ -39,7 +40,7 @@ def create_admin ():
             print("Admin user already exists.")
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()  
-        create_admin()  
+    # with app.app_context():
+    #     db.create_all()  
+    #     create_admin()  
     app.run(debug=True)
