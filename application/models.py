@@ -28,7 +28,7 @@ class Quiz(db.Model):
     instructions = db.Column(db.Text)
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
     questions = db.relationship('Question', backref='quiz', lazy=True)
-    attempts = db.relationship('UserQuizAttempt', backref='quiz', lazy=True)
+    attempts = db.relationship('Scores', backref='quiz', lazy=True)
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,18 +44,18 @@ class Option(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
 
 
-class UserQuizAttempt(db.Model):
+class Scores(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
-    attempt_date = db.Column(db.DateTime, nullable=False)
-    score = db.Column(db.Float)
+    time_stamp_of_attempt = db.Column(db.DateTime, nullable=False)
+    total_scored = db.Column(db.Float)
     answers = db.relationship('UserAnswer', backref='attempt', lazy=True)
 
 
 class UserAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    attempt_id = db.Column(db.Integer, db.ForeignKey('user_quiz_attempt.id'), nullable=False)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('scores.id'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     selected_option_id = db.Column(db.Integer, db.ForeignKey('option.id'))
     
