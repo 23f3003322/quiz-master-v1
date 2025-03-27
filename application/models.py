@@ -1,4 +1,5 @@
 from .database import db #check for this file in the folder you are existing
+from datetime import datetime
 
 class User(db.Model):
     id = db.Column(db.Integer(),primary_key = True)
@@ -38,6 +39,7 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question_statement = db.Column(db.Text, nullable=False)
     question_type = db.Column(db.String(10))  # 'msq' or 'mcq'
+    score = db.Column(db.Float, default=1.0, nullable=False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     options = db.relationship('Option', backref='question', lazy=True,cascade="all, delete")
 
@@ -48,18 +50,32 @@ class Option(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
 
 
+class QuizAttempt(db.Model):  
+    """Tracks each attempt of a user on a quiz."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+    time_started = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    time_completed = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(20), default="in_progress", nullable=False)  # in_progress, completed, abandoned
+
+    # Relationship to answers
+    answers = db.relationship('UserAnswer', backref='attempt', lazy=True, cascade="all, delete")
+    scores = db.relationship('Scores', backref='attempt', lazy=True, cascade="all, delete")
+
 class Scores(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('quiz_attempt.id'), nullable=False)
     time_stamp_of_attempt = db.Column(db.DateTime, nullable=False)
     total_scored = db.Column(db.Float)
-    answers = db.relationship('UserAnswer', backref='attempt', lazy=True,cascade="all, delete")
 
 
 class UserAnswer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    attempt_id = db.Column(db.Integer, db.ForeignKey('scores.id'), nullable=False)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('quiz_attempt.id'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
-    selected_option_id = db.Column(db.Integer, db.ForeignKey('option.id'))
+    selected_option_id = db.Column(db.Integer, db.ForeignKey('option.id'),nullable=True)
+    score = db.Column(db.Float, default=0.0)
     

@@ -36,6 +36,18 @@
                                 placeholder="Enter your question here"
                             >{{ question.question_statement }}</textarea>
                         </div>
+                        <div class="mb-3">
+                            <label for="question_statement" class="form-label">Question Score</label>
+                            <input 
+                                class="form-control" 
+                                id="score" 
+                                name="score" 
+                                rows="3" 
+                                required
+                                placeholder="Enter score"
+                                value = "{{ question.score }}"
+                            ></input>
+                        </div>
 
                         <div class="mb-3">
                             <label class="form-label">Question Type</label>
