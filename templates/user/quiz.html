@@ -1,0 +1,129 @@
+{% extends 'user/base.html' %}
+
+{% block title %}{{ quiz.title }} - Quiz{% endblock %}
+
+{% block extra_css %}
+<style>
+    .question-box {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .question-type-badge {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+    .mcq-badge {
+        background-color: #28a745;
+        color: white;
+    }
+    .msq-badge {
+        background-color: #17a2b8;
+        color: white;
+    }
+    .option-label {
+        display: block;
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: white;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+    .option-label:hover {
+        background-color: #f1f3f5;
+    }
+    .option-label input {
+        margin-right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="text-center mb-4">{{ quiz.title }}</h1>
+            
+            <div class="alert alert-info" role="alert">
+                <strong>Instructions:</strong>
+                <ul>
+                    <li>For Multiple Choice Questions (MCQ), select <strong>one</strong> correct answer.</li>
+                    <li>For Multiple Select Questions (MSQ), you may select <strong>multiple</strong> correct answers.</li>
+                    <li>Each question carries {{ questions[0].score }} point(s).</li>
+                    <li>Read each question carefully before answering.</li>
+                </ul>
+            </div>
+
+            <form action="{{ url_for('submit_quiz', quiz_id=quiz.id, attempt_id=attempt_id) }}" method="POST" id="quizForm">
+                {% for question in questions %}
+                <div class="question-box">
+                    <div class="question-header">
+                        <h5 class="mb-0">
+                            <strong>Q{{ loop.index }}: {{ question.question_statement }}</strong>
+                        </h5>
+                        <span class="badge {{ 'mcq-badge' if question.question_type == 'mcq' else 'msq-badge' }}">
+                            {{ question.question_type.upper() }}
+                        </span>
+                    </div>
+
+                    <div class="options-container">
+                        {% for option in question.options %}
+                        <label class="option-label">
+                            <input 
+                                type="{{ 'radio' if question.question_type == 'mcq' else 'checkbox' }}" 
+                                name="question_{{ question.id }}" 
+                                value="{{ option.id }}"
+                                {% if question.question_type == 'mcq' %}required{% endif %}
+                            >
+                            {{ option.option_text }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Submit Quiz
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('quizForm').addEventListener('submit', function(event) {
+    const questions = document.querySelectorAll('.question-box');
+    
+    for (let questionBox of questions) {
+        const questionType = questionBox.querySelector('.badge').textContent.toLowerCase();
+        const inputs = questionBox.querySelectorAll('input');
+        
+        if (questionType === 'mcq') {
+            const radioInputs = Array.from(inputs).filter(input => input.type === 'radio');
+            const checkedRadio = radioInputs.find(radio => radio.checked);
+            
+            if (!checkedRadio) {
+                event.preventDefault();
+                alert('Please select an answer for all MCQ questions.');
+                return;
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

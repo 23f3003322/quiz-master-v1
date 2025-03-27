@@ -1,0 +1,36 @@
+{% extends 'user/base.html' %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4 text-center">{{subject.title}} - courses</h1>
+    </div>
+</div>
+{% if chapters %}
+<div class="row subjects-list">
+    {% for chapter in chapters %}
+    <div class="col-12 col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-3">{{ chapter.title }}</h3>
+                <p class="card-text text-muted text-center">{{ chapter.description }}</p>
+                <div class="text-center">
+                    <a href="{{ url_for('user_get_chapter',chapter_id= chapter.id) }}" class="btn btn-primary">
+                        View Quizes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center" role="alert">
+            No subjects available. Start exploring courses!
+        </div>
+    </div>
+    {%endif%}
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'user/base.html' %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4 text-center">{{chapter.title}} - Quizes</h1>
+    </div>
+</div>
+{% if quizes %}
+<div class="row subjects-list">
+    {% for quiz in quizes %}
+    <div class="col-12 col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-3">{{ quiz.title }}</h3>
+                <p class="card-text text-muted text-center">{{ quiz.remarks }}</p>
+                <p class="card-text text-muted text-center">{{ quiz.date_of_quiz }}</p>
+                <p class="card-text text-muted text-center">{{ quiz.time_duration }}</p>
+                <div class="text-center">
+                    <form action="{{ url_for('start_quiz',quiz_id=quiz.id) }}" method="POST">
+                        <button type="submit" class="btn btn-primary">Start Quiz</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center" role="alert">
+            No subjects available. Start exploring subjects!
+        </div>
+    </div>
+    {%endif%}
+</div>
+{% endblock %}

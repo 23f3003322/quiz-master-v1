@@ -1,0 +1,224 @@
+{% extends "admin/base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="bi bi-journal-plus me-2"></i>Create New Question
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Create Question Form -->
+                    <form id="questionForm" method="POST">
+                        <div class="mb-3">
+                            <label for="question_statement" class="form-label">Question Statement</label>
+                            <textarea 
+                                class="form-control" 
+                                id="question_statement" 
+                                name="question_statement" 
+                                rows="3" 
+                                required
+                                placeholder="Enter your question here"
+                            ></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="question_statement" class="form-label">Question score</label>
+                            <input 
+                                class="form-control" 
+                                id="score" 
+                                name="score" 
+                                rows="3" 
+                                required
+                                placeholder="score"
+                            ></input>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Question Type</label>
+                            <div class="d-flex">
+                                <div class="form-check me-3">
+                                    <input 
+                                        class="form-check-input" 
+                                        type="radio" 
+                                        name="question_type" 
+                                        id="mcq" 
+                                        value="mcq" 
+                                        required
+                                    >
+                                    <label class="form-check-label" for="mcq">
+                                        Multiple Choice (MCQ)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input 
+                                        class="form-check-input" 
+                                        type="radio" 
+                                        name="question_type" 
+                                        id="msq" 
+                                        value="msq" 
+                                        required
+                                    >
+                                    <label class="form-check-label" for="msq">
+                                        Multiple Select (MSQ)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="optionsSection">
+                            <h5 class="mb-3">Options</h5>
+                            <div id="optionsContainer">
+                                <!-- Options will be dynamically added here -->
+                            </div>
+                            <div class="d-grid mb-3">
+                                <button type="button" id="addOptionBtn" class="btn btn-outline-secondary">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Option
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Create Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('admin_dash') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const optionsContainer = document.getElementById('optionsContainer');
+        const addOptionBtn = document.getElementById('addOptionBtn');
+        let optionCount = 0;
+
+        // Question type change listener
+        const questionTypeInputs = document.querySelectorAll('input[name="question_type"]');
+        questionTypeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const inputType = this.value === 'mcq' ? 'radio' : 'checkbox';
+                const existingOptions = optionsContainer.querySelectorAll('.option-row');
+                
+                existingOptions.forEach((optionRow, index) => {
+                    const correctInput = optionRow.querySelector('input[name="is_correct[]"]');
+                    
+                    // Change input type
+                    correctInput.type = inputType;
+                    
+                    // Uncheck all inputs when changing type
+                    correctInput.checked = false;
+                });
+            });
+        });
+
+        addOptionBtn.addEventListener('click', function() {
+            // Determine current question type
+            const questionType = document.querySelector('input[name="question_type"]:checked');
+            const inputType = questionType ? (questionType.value === 'mcq' ? 'radio' : 'checkbox') : 'checkbox';
+            
+            optionCount++;
+            const optionRow = document.createElement('div');
+            optionRow.classList.add('row', 'mb-2', 'option-row', 'g-2', 'align-items-center');
+            
+            optionRow.innerHTML = `
+                <div class="col-md-7">
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        name="option_text[]" 
+                        placeholder="Enter option text" 
+                        required
+                    >
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input 
+                            class="form-check-input" 
+                            type="${inputType}" 
+                            name="is_correct[]" 
+                            id="correctOption${optionCount}"
+                            value="${optionCount - 1}"
+                        >
+                        <label class="form-check-label" for="correctOption${optionCount}">
+                            Correct Option
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm remove-option">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            // Add event listener to remove button
+            optionRow.querySelector('.remove-option').addEventListener('click', function() {
+                optionsContainer.removeChild(optionRow);
+            });
+
+            optionsContainer.appendChild(optionRow);
+        });
+
+        // Trigger first option addition
+        addOptionBtn.click();
+
+        // Form submission validation
+        const questionForm = document.getElementById('questionForm');
+        questionForm.addEventListener('submit', function(event) {
+            const questionType = document.querySelector('input[name="question_type"]:checked');
+            const options = document.querySelectorAll('input[name="option_text[]"]');
+            const correctOptions = document.querySelectorAll('input[name="is_correct[]"]:checked');
+
+            if (!questionType) {
+                event.preventDefault();
+                alert('Please select a question type');
+                return;
+            }
+
+            if (options.length < 2) {
+                event.preventDefault();
+                alert('Please add at least 2 options');
+                return;
+            }
+
+            if (questionType.value === 'mcq' && correctOptions.length !== 1) {
+                event.preventDefault();
+                alert('MCQ must have exactly one correct option');
+                return;
+            }
+
+            if (questionType.value === 'msq' && correctOptions.length < 1) {
+                event.preventDefault();
+                alert('MSQ must have at least one correct option');
+                return;
+            }
+        });
+    });
+</script>
+
+{% endblock %}
