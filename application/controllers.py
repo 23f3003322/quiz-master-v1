@@ -342,3 +342,157 @@ def delete_quiz(quiz_id):
 
     flash("chapter deleted successfully!", "success")
     return redirect(url_for('admin_dash'))
+
+@app.route('/admin/quiz/<int:quiz_id>', methods=['GET'])
+@admin_required
+def get_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    questions = Question.query.filter_by(quiz_id=quiz.id).all() 
+    return render_template('admin/quiz/view_quiz.html',  quiz=quiz,questions=questions)
+
+
+@app.route('/admin/quiz/<int:quiz_id>/question/new', methods=['GET', 'POST'])
+@admin_required
+def add_question(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    if request.method== "POST":
+        question_statement = request.form.get('question_statement')
+        question_type = request.form.get('question_type')
+        option_texts = request.form.getlist('option_text[]')  # Get all options
+        correct_options = request.form.getlist('is_correct[]')
+
+        print(option_texts)
+        print(correct_options)
+
+        if not question_statement or not question_type:
+            flash("All fields are required!", "danger")
+            return redirect(url_for('add_question', quiz_id=quiz.id))
+
+        if len(option_texts) < 2:
+            flash("You must add at least two options!", "danger")
+            return redirect(url_for('add_question', quiz_id=quiz.id))
+
+        if question_type == "mcq" and len(correct_options) != 1:
+            flash("MCQ must have exactly one correct option!", "danger")
+            return redirect(url_for('add_question', quiz_id=quiz.id))
+
+        if question_type == "msq" and len(correct_options) < 1:
+            flash("MSQ must have at least one correct option!", "danger")
+            return redirect(url_for('add_question', quiz_id=quiz.id))
+        
+        new_question = Question(
+            question_statement = question_statement,
+            question_type = question_type,
+            quiz_id = quiz_id
+        )
+        db.session.add(new_question)
+        db.session.flush()  
+
+        for index, text in enumerate(option_texts):
+            is_correct = str(index) in correct_options  
+            new_option = Option(
+                option_text=text,
+                is_correct=is_correct,
+                question_id=new_question.id
+            )
+            db.session.add(new_option)
+
+        db.session.commit()
+        flash("Question added successfully!", "success")
+        return redirect(url_for('get_chapter', chapter_id=quiz.chapter_id))
+
+    
+    return render_template("admin/question/create_question.html",quiz=quiz)
+
+
+@app.route('/admin/question/update/<int:question_id>', methods=['GET', 'POST'])
+@admin_required
+def update_question(question_id):
+    question = Question.query.get_or_404(question_id)
+    options = Option.query.filter_by(question_id=question.id).all()
+
+    if request.method == "POST":
+        # Get form data
+        question_statement = request.form.get('question_statement')
+        question_type = request.form.get('question_type')
+        option_texts = request.form.getlist('option_text[]')
+        correct_option_indexes = request.form.getlist('is_correct[]')
+
+        correct_option_indexes = [int(index) for index in correct_option_indexes]
+
+
+
+        # ✅ Validation
+        if not question_statement or not question_type:
+            flash("All fields are required!", "danger")
+            return redirect(url_for('update_question',  question_id=question.id))
+
+        if len(option_texts) < 2:
+            flash("You must have at least two options!", "danger")
+            return redirect(url_for('update_question',  question_id=question.id))
+
+        if question_type == "mcq" and len(correct_option_indexes) != 1:
+            flash("MCQ must have exactly one correct option!", "danger")
+            return redirect(url_for('update_question',  question_id=question.id))
+
+        if question_type == "msq" and len(correct_option_indexes) < 1:
+            flash("MSQ must have at least one correct option!", "danger")
+            return redirect(url_for('update_question',  question_id=question.id))
+        
+        question.text = question_statement
+        question.question_type = question_type
+        db.session.commit()
+
+
+         # ✅ Update options correctly
+        existing_options = list(options)  # Convert to a list to allow index-based access
+        updated_options = []
+   
+
+        for index, text in enumerate(option_texts,start=1):
+            is_correct = index in correct_option_indexes  # ✅ Fix: Ensure correct mapping
+
+            if index < len(existing_options):
+                # Update existing option
+                existing_options[index].option_text = text
+                existing_options[index].is_correct = is_correct
+                updated_options.append(existing_options[index])
+            else:
+                # Add new option if more were added
+                new_option = Option(
+                    option_text=text,
+                    is_correct=is_correct,
+                    question_id=question.id
+                )
+                db.session.add(new_option)
+                updated_options.append(new_option)
+
+        # ✅ Remove extra options if some were deleted
+        for opt in options:
+            if opt not in updated_options:
+                db.session.delete(opt)
+
+        db.session.commit()
+        flash("Question updated successfully!", "success")
+        return redirect(url_for('get_quiz', quiz_id=question.quiz_id))
+
+    return render_template("admin/question/edit_question.html",  question=question, options=options)
+
+
+
+@app.route('/admin/question/delete/<int:question_id>', methods=['GET'])
+@admin_required
+def delete_question(question_id):
+
+    question = Question.query.get_or_404(question_id)
+
+    if not question:
+        flash("Chapter not found!", "danger")
+        return redirect(url_for('admin_dash'))
+
+    # Delete the subject from the database
+    db.session.delete(question)
+    db.session.commit()
+
+    flash("chapter deleted successfully!", "success")
+    return redirect(url_for('admin_dash'))

@@ -36,7 +36,7 @@ class Quiz(db.Model):
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    question_text = db.Column(db.Text, nullable=False)
+    question_statement = db.Column(db.Text, nullable=False)
     question_type = db.Column(db.String(10))  # 'msq' or 'mcq'
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     options = db.relationship('Option', backref='question', lazy=True,cascade="all, delete")
