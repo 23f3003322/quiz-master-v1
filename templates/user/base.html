@@ -11,45 +11,106 @@
         body {
             background-color: #f4f6f9;
         }
-        .navbar {
-            margin-bottom: 20px;
+        .navbar-custom {
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #333;
+        }
+        .navbar-nav .nav-link {
+            color: #333;
+            margin-right: 15px;
+            transition: color 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover {
+            color: #007bff;
+        }
+        .search-form {
+            display: flex;
+            align-items: center;
+        }
+        .search-input {
+            border-radius: 20px 0 0 20px;
+            border-right: none;
+        }
+        .search-button {
+            border-radius: 0 20px 20px 0;
+            border-left: none;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 10px;
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('user_dash') }}">Learning Platform</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('user.user_dash') }}">
+                Quiz_master_V1
+            </a>
+    
+            <!-- Responsive Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+    
+            <!-- Navbar Content -->
+            <div class="collapse navbar-collapse" id="userNavbar">
+                <!-- Navigation Links -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user.user_dash') }}">
+                            <i class="bi bi-house-fill"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user.scores') }}">
+                            <i class="bi bi-trophy-fill"></i> Scores
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('user.user_dash') }}">
+                            <i class="bi bi-graph-up"></i> Summary
+                        </a>
+                    </li>
+                </ul>
+    
+                <!-- Search Form -->
+                <form class="d-flex search-form me-3" action="{{ url_for('user.user_dash') }}" method="GET">
+                    <input class="form-control me-2 search-input" type="search" 
+                           placeholder="Search quizzes, subjects..." 
+                           aria-label="Search" 
+                           name="query">
+                    <button class="btn btn-outline-primary search-button" type="submit">
+                        <i class="bi bi-search"></i> search
+                    </button>
+                </form>
+    
+                <!-- User Dropdown -->
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('user_dash') }}">Dashboard</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            hi  user
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('user_dash') }}">Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-                    </li>
-
                 </ul>
             </div>
         </div>
     </nav>
-
     <!-- Content Block -->
     <div class="container">
         {% block content %}{% endblock %}
@@ -58,6 +119,19 @@
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Optional: Highlight current page in navbar
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+            
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        </script>
     
     {% block extra_js %}{% endblock %}
 </body>

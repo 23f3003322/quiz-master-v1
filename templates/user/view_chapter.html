@@ -19,7 +19,7 @@
                 <p class="card-text text-muted text-center">{{ quiz.date_of_quiz }}</p>
                 <p class="card-text text-muted text-center">{{ quiz.time_duration }}</p>
                 <div class="text-center">
-                    <form action="{{ url_for('start_quiz',quiz_id=quiz.id) }}" method="POST">
+                    <form action="{{ url_for('user.start_quiz',quiz_id=quiz.id) }}" method="POST">
                         <button type="submit" class="btn btn-primary">Start Quiz</button>
                     </form>
                 </div>

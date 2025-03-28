@@ -17,7 +17,7 @@
                 <h3 class="card-title text-center mb-3">{{ chapter.title }}</h3>
                 <p class="card-text text-muted text-center">{{ chapter.description }}</p>
                 <div class="text-center">
-                    <a href="{{ url_for('user_get_chapter',chapter_id= chapter.id) }}" class="btn btn-primary">
+                    <a href="{{ url_for('user.get_chapter',chapter_id= chapter.id) }}" class="btn btn-primary">
                         View Quizes
                     </a>
                 </div>

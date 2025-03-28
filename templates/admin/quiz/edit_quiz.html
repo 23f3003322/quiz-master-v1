@@ -24,7 +24,7 @@
                     {% endwith %}
 
                     <!-- Create Quiz Form -->
-                    <form action="{{ url_for('update_quiz', quiz_id=quiz.id) }}" method="POST">
+                    <form action="{{ url_for('admin.update_quiz', quiz_id=quiz.id) }}" method="POST">
                         <div class="mb-3">
                             <label for="title" class="form-label">Quiz Title</label>
                             <input 
@@ -49,31 +49,49 @@
                                     id="date_of_quiz" 
                                     name="date_of_quiz" 
                                     required
-                                    value="{{quiz.date_of_quiz}}""
+                                    value="{{quiz.date_of_quiz}}"
                                 >
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="time_duration" class="form-label">
-                                    Quiz Duration 
-                                    <span class="text-muted small">(HH:MM:SS)</span>
+                                <label for="start_time" class="form-label">
+                                    Start Time
+                                    <span class="text-muted small">(HH:MM)</span>
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-clock"></i></span>
                                     <input 
-                                        type="text" 
+                                        type="time" 
                                         class="form-control" 
-                                        id="time_duration" 
-                                        name="time_duration" 
-                                        pattern="^([0-9]{2}):([0-9]{2}):([0-9]{2})$" 
-                                        placeholder="00:45:00" 
+                                        id="start_time" 
+                                        name="start_time" 
                                         required
-                                        title="Duration in HH:MM:SS format"
-                                        value="{{ quiz.time_duation }}"
+                                        value="{{quiz.start_time}}"
                                     >
                                 </div>
-                                <div class="form-text">
-                                    Example: 00:45:00 for 45 minutes
-                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="mb-3">
+                            <label for="time_duration" class="form-label">
+                                Quiz Duration 
+                                <span class="text-muted small">(in minutes)</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-stopwatch"></i></span>
+                                <input 
+                                    type="number" 
+                                    class="form-control" 
+                                    id="time_duration" 
+                                    name="time_duration" 
+                                    min="1" 
+                                    max="360" 
+                                    placeholder="45" 
+                                    required
+                                    value="{{quiz.time_duration}}"
+                                >
+                            </div>
+                            <div class="form-text">
+                                Enter duration in minutes (1-360)
                             </div>
                         </div>
 
@@ -86,23 +104,10 @@
                                 rows="3" 
                                 placeholder="Enter any additional instructions or remarks"
                                 value="{{quiz.remarks}}"
-                            ></textarea>
+                            >{{quiz.remarks}}</textarea>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input 
-                                    class="form-check-input" 
-                                    type="checkbox" 
-                                    id="is_active" 
-                                    name="is_active" 
-                                    value="{{quiz.is_active}}"
-                                >
-                                <label class="form-check-label" for="is_active">
-                                    Make this quiz active
-                                </label>
-                            </div>
-                        </div>
+
 
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">
@@ -112,7 +117,7 @@
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <a href="{{ url_for('admin_dash') }}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ url_for('admin.admin_dash') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>

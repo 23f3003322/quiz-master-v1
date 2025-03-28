@@ -17,7 +17,7 @@
                 <h3 class="card-title text-center mb-3">{{ subject.title }}</h3>
                 <p class="card-text text-muted text-center">{{ subject.description }}</p>
                 <div class="text-center">
-                    <a href="{{ url_for('user_get_subject',subject_id= subject.id) }}" class="btn btn-primary">
+                    <a href="{{ url_for('user.get_subject',subject_id= subject.id) }}" class="btn btn-primary">
                         View Chapters
                     </a>
                 </div>
