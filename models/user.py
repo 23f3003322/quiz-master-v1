@@ -1,4 +1,4 @@
-from database import db #check for this file in the folder you are existing
+from database import db 
 
 class User(db.Model):
     id = db.Column(db.Integer(),primary_key = True)

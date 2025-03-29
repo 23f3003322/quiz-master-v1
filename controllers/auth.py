@@ -28,7 +28,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         pwd = request.form.get("password")
-        this_user = User.query.filter_by(username=username).first()#LHS attribute name in table, RHS is data fetched from form 
+        this_user = User.query.filter_by(username=username).first()
         if this_user:
             if  check_password_hash(this_user.password,pwd):
                 session['user_id'] = this_user.id
@@ -70,5 +70,5 @@ def register():
         flash("Registration successful! Please log in.", "success")
         return redirect(url_for('user.user_dash'))
 
-    return render_template('register.html')  # Show register page only if not logged in
+    return render_template('register.html')  
 

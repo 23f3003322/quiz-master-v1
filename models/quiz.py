@@ -21,9 +21,9 @@ class Quiz(db.Model):
     remarks = db.Column(db.Text)
     date_of_quiz = db.Column(db.Date, nullable=False)
     
-    # New fields
-    start_time = db.Column(db.Time, nullable=False)  # Quiz start time (HH:MM)
-    time_duration = db.Column(db.Integer, nullable=False)  # Duration in minutes
+
+    start_time = db.Column(db.Time, nullable=False)  
+    time_duration = db.Column(db.Integer, nullable=False)
 
     chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
     questions = db.relationship('Question', backref='quiz', lazy=True, cascade="all, delete")
@@ -34,7 +34,7 @@ class Quiz(db.Model):
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question_statement = db.Column(db.Text, nullable=False)
-    question_type = db.Column(db.String(10))  # 'msq' or 'mcq'
+    question_type = db.Column(db.String(10)) 
     score = db.Column(db.Float, default=1.0, nullable=False)
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     options = db.relationship('Option', backref='question', lazy=True,cascade="all, delete")

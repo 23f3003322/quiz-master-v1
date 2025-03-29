@@ -1,4 +1,4 @@
-from database import db #check for this file in the folder you are existing
+from database import db 
 from datetime import datetime
 class QuizAttempt(db.Model):  
     """Tracks each attempt of a user on a quiz."""
@@ -7,9 +7,9 @@ class QuizAttempt(db.Model):
     quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
     time_started = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     time_completed = db.Column(db.DateTime, nullable=True)
-    status = db.Column(db.String(20), default="in_progress", nullable=False)  # in_progress, completed, abandoned
+    status = db.Column(db.String(20), default="in_progress", nullable=False)  
 
-    # Relationship to answers
+
     answers = db.relationship('UserAnswer', backref='attempt', lazy=True, cascade="all, delete")
     scores = db.relationship('Scores', backref='attempt', lazy=True, cascade="all, delete")
 

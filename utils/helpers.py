@@ -34,7 +34,7 @@ def convert_time_to_db_time(time_str):
 
 
 def validate_quiz_date(date_value):
-    if isinstance(date_value, str):  # If it's a string, convert it to a date
+    if isinstance(date_value, str):  
         date_value = datetime.strptime(date_value, '%Y-%m-%d').date()
 
     if date_value < date.today():

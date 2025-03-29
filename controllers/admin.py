@@ -11,12 +11,6 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 @admin_required
 def admin_dash():
     subjects = Subject.query.all() 
-    # this_user = User.query.filter_by(type="admin").first()
-    # all_info = Info.query.all()
-    # users= len(User.query.all())-1
-    # requests = len(Info.query.filter_by(atr_value="requested").all())
-    # generated = len(Info.query.filter_by(atr_value="generated").all())
-    # return render_template("admin_dash.html", this_user=this_user, all_info=all_info,users=users,requests=requests,generated=generated)
     return render_template("admin/admin_dashboard.html",subjects=subjects)
 
 
@@ -28,13 +22,13 @@ def create_subject():
         subject_title = request.form.get('title')
         subject_description = request.form.get('description')
 
-        # Check if the subject already exists
+
         existing_subject = Subject.query.filter_by(title=subject_title).first()
         if existing_subject:
             flash("Subject already exists!", "warning")
             return redirect(url_for('admin.create_subject'))
 
-        # Create and save new subject
+
         new_subject = Subject(title=subject_title.lower(), description=subject_description)
         db.session.add(new_subject)
         db.session.commit()
@@ -58,7 +52,7 @@ def update_subject(subject_id):
             flash("Subject not found!", "danger")
             return redirect(url_for('admin.admin_Dash'))
 
-        # Get form data
+
         title = request.form.get('title')
         description = request.form.get('description')
 
@@ -66,7 +60,7 @@ def update_subject(subject_id):
             flash("Title is required!", "danger")
             return redirect(url_for('admin.update_subject', subject_id=subject_id))
 
-        # Update subject details
+
         subject.title = title.lower()
         subject.description = description
         db.session.commit()
@@ -87,7 +81,7 @@ def delete_subject(subject_id):
         flash("Subject not found!", "danger")
         return redirect(url_for('admin.admin_dash'))
 
-    # Delete the subject from the database
+
     db.session.delete(subject)
     db.session.commit()
 
@@ -97,7 +91,7 @@ def delete_subject(subject_id):
 @admin_bp.route('/subject/<int:subject_id>', methods=['GET'])
 @admin_required
 def get_subject(subject_id):
-    subject = Subject.query.get_or_404(subject_id)  # Fetch subject by ID
+    subject = Subject.query.get_or_404(subject_id) 
     chapters = Chapter.query.filter_by(subject_id=subject.id).all() 
     return render_template('admin/view_subject.html', subject=subject, chapters=chapters)
 
@@ -162,7 +156,7 @@ def delete_chapter(chapter_id):
         flash("Chapter not found!", "danger")
         return redirect(url_for('admin.admin_dash'))
 
-    # Delete the subject from the database
+
     db.session.delete(chapter)
     db.session.commit()
 
@@ -179,7 +173,7 @@ def create_quiz(chapter_id):
     if request.method == 'POST':
         print("post request")
         title = request.form['title']
-        remarks = request.form.get('remarks', '')  # Optional
+        remarks = request.form.get('remarks', '')  
         date_of_quiz = request.form['date_of_quiz']
         time_duration = request.form['time_duration']
         start_time= request.form['start_time']  
@@ -193,7 +187,7 @@ def create_quiz(chapter_id):
             flash('Invalid date', 'danger')
             return redirect(url_for('admin.create_quiz',chapter_id= chapter.id))
 
-        # Create new Quiz instance
+
 
         new_quiz = Quiz(
             title=title.lower(),
@@ -204,7 +198,7 @@ def create_quiz(chapter_id):
             start_time = start_time
         )
 
-        # Add to database
+
         db.session.add(new_quiz)
         db.session.commit()
 
@@ -218,7 +212,7 @@ def create_quiz(chapter_id):
 
 @admin_bp.route('/quiz/update/<int:quiz_id>', methods=['GET', 'POST'])
 def update_quiz(quiz_id):
-    quiz = Quiz.query.get_or_404(quiz_id)  # Fetch quiz or return 404 if not found
+    quiz = Quiz.query.get_or_404(quiz_id)  
 
     if request.method == 'POST':
         quiz.title = request.form['title'].lower()
@@ -259,7 +253,7 @@ def delete_quiz(quiz_id):
         flash("Chapter not found!", "danger")
         return redirect(url_for('admin_dash'))
 
-    # Delete the subject from the database
+
     db.session.delete(quiz)
     db.session.commit()
 
@@ -283,7 +277,7 @@ def add_question(quiz_id):
     if request.method== "POST":
         question_statement = request.form.get('question_statement')
         question_type = request.form.get('question_type')
-        option_texts = request.form.getlist('option_text[]')  # Get all options
+        option_texts = request.form.getlist('option_text[]') 
         correct_options = request.form.getlist('is_correct[]')
         score = request.form.get('score')
 
@@ -336,7 +330,7 @@ def update_question(question_id):
     options = Option.query.filter_by(question_id=question.id).all()
 
     if request.method == "POST":
-        # Get form data
+
         question_statement = request.form.get('question_statement')
         question_type = request.form.get('question_type')
         option_texts = request.form.getlist('option_text[]')
@@ -347,7 +341,7 @@ def update_question(question_id):
 
 
 
-        # ✅ Validation
+
         if not question_statement or not question_type:
             flash("All fields are required!", "danger")
             return redirect(url_for('admin.update_question',  question_id=question.id))
@@ -370,21 +364,21 @@ def update_question(question_id):
         db.session.commit()
 
 
-         # ✅ Update options correctly
-        existing_options = list(options)  # Convert to a list to allow index-based access
+
+        existing_options = list(options)  
         updated_options = []
    
 
         for index, text in enumerate(option_texts,start=1):
-            is_correct = index in correct_option_indexes  # ✅ F
+            is_correct = index in correct_option_indexes  
 
             if index < len(existing_options):
-                # Update existing option
+
                 existing_options[index].option_text = text
                 existing_options[index].is_correct = is_correct
                 updated_options.append(existing_options[index])
             else:
-                # Add new option if more were added
+
                 new_option = Option(
                     option_text=text,
                     is_correct=is_correct,
@@ -393,7 +387,7 @@ def update_question(question_id):
                 db.session.add(new_option)
                 updated_options.append(new_option)
 
-        # ✅ Remove extra options if some were deleted
+
         for opt in options:
             if opt not in updated_options:
                 db.session.delete(opt)
@@ -416,7 +410,7 @@ def delete_question(question_id):
         flash("Chapter not found!", "danger")
         return redirect(url_for('admin_dash'))
 
-    # Delete the subject from the database
+
     db.session.delete(question)
     db.session.commit()
 
@@ -434,11 +428,10 @@ def get_users():
 
 
 @admin_bp.route('/user/<int:user_id>', methods=['GET'])
-@admin_required  # Ensure only admins can access this route
+@admin_required  
 def get_user_data(user_id):
-    user = User.query.get_or_404(user_id)  # Fetch user or return 404 if not found
+    user = User.query.get_or_404(user_id)  
 
-    # Query user's quiz attempts with their scores
     user_attempts = (
         db.session.query(
             Quiz.title.label("quiz_title"),
@@ -447,8 +440,8 @@ def get_user_data(user_id):
             QuizAttempt.status,
             Scores.total_scored
         )
-        .join(Quiz, Quiz.id == QuizAttempt.quiz_id)  # Join with Quiz table
-        .outerjoin(Scores, Scores.attempt_id == QuizAttempt.id)  # Join with Scores table
+        .join(Quiz, Quiz.id == QuizAttempt.quiz_id)  
+        .outerjoin(Scores, Scores.attempt_id == QuizAttempt.id)  
         .filter(QuizAttempt.user_id == user_id)
         .all()
     )

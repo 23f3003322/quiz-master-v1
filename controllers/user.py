@@ -1,7 +1,7 @@
 from flask import Blueprint,Flask,render_template,redirect,request, session, flash , url_for
 from sqlalchemy import func
 
-user_bp = Blueprint("user", __name__)  # No URL prefix means it's at "/"
+user_bp = Blueprint("user", __name__)  
 
 
 from models import *
@@ -62,16 +62,15 @@ def start_quiz(quiz_id):
 
         flash("Quiz started successfully!", "success")
     
-             #        Redirect to the quiz page with the new attempt ID
+             
         return redirect(url_for('user.quiz_questions', quiz_id=quiz_id, attempt_id=new_attempt.id))
     except:
         flash("You cannot attempt this quiz", "danger")
         return   redirect(url_for('user.user_dash'))
 
 
-    user_id = session['user_id']
 
-    # Create a new quiz attempt
+
 
 
 
@@ -99,53 +98,53 @@ def submit_quiz(quiz_id, attempt_id):
     total_score = 0
     
     for question in questions:
-        # Retrieve all correct options for the current question
+
         correct_options = Option.query.filter_by(question_id=question.id, is_correct=True).all()
         
-        # Get user's selected options for this question
+
         if question.question_type == 'mcq':
-            # For MCQ, handle single selection
+
             selected_option_id = request.form.get(f"question_{question.id}")
             
             if not selected_option_id:
-                # No option selected
+
                 score = 0
             else:
                 selected_option = Option.query.get(int(selected_option_id))
                 
-                # Check if the selected option is correct
+
                 if selected_option and selected_option.is_correct:
                     score = question.score
                 else:
                     score = 0
         
         elif question.question_type == 'msq':
-            # For MSQ, handle multiple selections
+
             selected_option_ids = request.form.getlist(f"question_{question.id}")
             
             if not selected_option_ids:
-                # No options selected
+
                 score = 0
             else:
-                # Convert selected option IDs to integers
+
                 selected_option_ids = [int(option_id) for option_id in selected_option_ids]
                 
-                # Get selected options from database
+
                 selected_options = Option.query.filter(Option.id.in_(selected_option_ids)).all()
                 
-                # Calculate partial scoring for MSQ
+
                 correct_selected = sum(1 for option in selected_options if option.is_correct)
                 incorrect_selected = sum(1 for option in selected_options if not option.is_correct)
                 total_correct = len(correct_options)
                 
                 if incorrect_selected > 0:
-                    # If any incorrect option is selected, score is 0
+                    
                     score = 0
                 else:
-                    # Partial scoring based on correct selections
+                    
                     score = (correct_selected / total_correct) * question.score
         
-        # Create user answer record
+
         user_answer = UserAnswer(
             attempt_id=attempt_id,
             question_id=question.id,
@@ -154,10 +153,10 @@ def submit_quiz(quiz_id, attempt_id):
         )
         db.session.add(user_answer)
         
-        # Add to total score
+
         total_score += score
     
-    # Save total score in Scores table
+
     score_entry = Scores(
         user_id=attempt.user_id,
         quiz_id=quiz_id,
@@ -167,11 +166,11 @@ def submit_quiz(quiz_id, attempt_id):
     )
     db.session.add(score_entry)
     
-    # Update attempt status
+
     attempt.status = "completed"
     attempt.time_completed = datetime.utcnow()
     
-    # Commit all changes
+
     db.session.commit()
     
     flash(f"Quiz submitted! You scored {total_score} points.", "success")
@@ -192,6 +191,8 @@ def quiz_results(quiz_id, attempt_id):
     attempt = QuizAttempt.query.filter_by(id=attempt_id, user_id=user_id).first_or_404()
     quiz = Quiz.query.get_or_404(quiz_id)
     user_answers = UserAnswer.query.filter_by(attempt_id=attempt_id).all()
+    for answer in user_answers:
+        print(answer.__dict__)
 
     return render_template('user/quiz_results.html', attempt=attempt, quiz=quiz, user_answers=user_answers)
 
@@ -202,50 +203,50 @@ def quiz_results(quiz_id, attempt_id):
 @user_bp.route('/summary', methods=['GET'])
 @login_required
 def summary():
-    user_id = session.get('user_id')  # Ensure session key exists
+    user_id = session.get('user_id')  
     if not user_id:
         flash("User not logged in", "danger")
         return redirect(url_for("auth.login"))
 
-    # Total quizzes attempted
+
     total_attempts = db.session.query(func.count(QuizAttempt.id)).filter(QuizAttempt.user_id == user_id).scalar() or 0
 
-    # Total score and average score
+
     
     avg_score = db.session.query(func.avg(Scores.total_scored)).filter(Scores.user_id == user_id).scalar() or 0
     avg_score = round(avg_score, 2)
 
-    # Total questions answered
+
     total_questions_answered = db.session.query(func.count(UserAnswer.id))\
         .join(QuizAttempt, UserAnswer.attempt_id == QuizAttempt.id)\
         .filter(QuizAttempt.user_id == user_id).scalar() or 0
 
 
 
-    # Total time spent on quizzes (converted from seconds to minutes)
+
     total_time_spent = db.session.query(
         func.sum(func.strftime('%s', QuizAttempt.time_completed) - func.strftime('%s', QuizAttempt.time_started))
     ).filter(
         QuizAttempt.user_id == user_id,
-        QuizAttempt.time_completed.isnot(None)  # Ignore unfinished quizzes
+        QuizAttempt.time_completed.isnot(None) 
     ).scalar() or 0
-    total_time_spent = round(total_time_spent / 60, 2)  # Convert seconds to minutes
+    total_time_spent = round(total_time_spent / 60, 2) 
 
-    # Best performing quiz (highest score)
+
     best_quiz = db.session.query(Quiz.title, Scores.total_scored)\
         .join(Scores, Quiz.id == Scores.quiz_id)\
         .filter(Scores.user_id == user_id)\
         .order_by(Scores.total_scored.desc())\
         .first()
 
-    # Worst performing quiz (lowest score)
+
     worst_quiz = db.session.query(Quiz.title, Scores.total_scored)\
         .join(Scores, Quiz.id == Scores.quiz_id)\
         .filter(Scores.user_id == user_id)\
         .order_by(Scores.total_scored.asc())\
         .first()
 
-    # Average score per subject
+
     subjects = db.session.query(Subject.title, func.avg(Scores.total_scored))\
         .join(Chapter, Subject.id == Chapter.subject_id)\
         .join(Quiz, Chapter.id == Quiz.chapter_id)\
