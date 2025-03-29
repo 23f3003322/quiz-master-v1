@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template
 from config import Config
 from database import db
 from models import *  # Import models
@@ -18,6 +18,9 @@ def create_app():
 
 app = create_app()
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()  # Create tables if they don't exist

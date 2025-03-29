@@ -47,11 +47,11 @@ def login():
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    # if 'user_id' in session:
-    #     flash("You are already logged in!", "info")
-    #     if session.get("role")!="admin":
-    #         return redirect(url_for("user.user_dash"))    
-    #     return redirect(url_for('admin_dash'))
+    if 'user_id' in session:
+        flash("You are already logged in!", "info")
+        if session.get("role")!="admin":
+            return redirect(url_for("user.user_dash"))    
+        return redirect(url_for('admin.admin_dash'))
 
 
     if request.method == 'POST':
@@ -63,7 +63,7 @@ def register():
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
-        new_user = User(username=username, fullName=fullName,DOB=dob,qualification=qualification, password=hashed_password)
+        new_user = User(username=username.lower(), fullName=fullName,DOB=dob,qualification=qualification, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
 

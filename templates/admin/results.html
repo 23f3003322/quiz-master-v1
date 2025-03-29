@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="border-bottom pb-3">Search Results</h2>
+    
+    {% if results %}
+        <div class="list-group mt-3">
+            {% for result in results %}
+                <a 
+                    {% if key == "subjects" %}
+                        href="{{ url_for('admin.get_subject', subject_id=result.id) }}"
+                    {% elif key == "chapters" %}
+                        href="{{ url_for('admin.get_chapter', chapter_id=result.id) }}"
+                    {% elif key == "users" %}
+                        href="{{ url_for('admin.get_user_data', user_id=result.id) }}"
+                    {% elif key == "questions" %}
+                        href="{{ url_for('admin.get_chapter', question_id=result.id) }}"
+                    {% elif key == "quizzes" %}
+                        href="{{ url_for('admin.get_quiz', quiz_id=result.id) }}"
+                    {% endif %}
+                    class="list-group-item list-group-item-action">
+                    {% if key == "subjects" %}
+                        <i class="fas fa-book me-2"></i> {{ result.title }} (Subject)
+                    {% elif key == "users" %}
+                        <i class="fas fa-file-alt me-2"></i> {{ result.username }} (User)
+                    {% elif key == "chapters" %}
+                        <i class="fas fa-file-alt me-2"></i> {{ result.title }} (Chapter)
+                    {% elif key == "quizzes" %}
+                        <i class="fas fa-question-circle me-2"></i> {{ result.title }} (Quiz)
+                    {% elif key == "questions" %}
+                        <i class="fas fa-question-circle me-2"></i> {{ result.title }} (Question)
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted mt-3">No results found for your search.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('admin.admin_dash') }}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -48,22 +48,30 @@ def get_chapter(chapter_id):
 @user_bp.route('/start_quiz/<int:quiz_id>', methods=['POST'])
 @login_required
 def start_quiz(quiz_id):
+    user_id = session["user_id"]
     quiz = Quiz.query.get_or_404(quiz_id)
-    if not is_quiz_active(quiz):
+    is_active, error_message = is_quiz_active(quiz)
+    if not is_active:
+        flash(error_message, "danger")
+        return redirect(url_for('user.user_dash'))
+    try:
+
+        new_attempt = QuizAttempt(user_id=user_id, quiz_id=quiz_id, time_started=datetime.utcnow())
+        db.session.add(new_attempt)
+        db.session.commit()
+
+        flash("Quiz started successfully!", "success")
+    
+             #        Redirect to the quiz page with the new attempt ID
+        return redirect(url_for('user.quiz_questions', quiz_id=quiz_id, attempt_id=new_attempt.id))
+    except:
         flash("You cannot attempt this quiz", "danger")
         return   redirect(url_for('user.user_dash'))
+
 
     user_id = session['user_id']
 
     # Create a new quiz attempt
-    new_attempt = QuizAttempt(user_id=user_id, quiz_id=quiz_id, time_started=datetime.utcnow())
-    db.session.add(new_attempt)
-    db.session.commit()
-
-    flash("Quiz started successfully!", "success")
-    
-    # Redirect to the quiz page with the new attempt ID
-    return redirect(url_for('user.quiz_questions', quiz_id=quiz_id, attempt_id=new_attempt.id))
 
 
 
@@ -256,3 +264,22 @@ def summary():
         worst_quiz=worst_quiz,
         subjects=subjects
     )
+
+
+@user_bp.route("/search",methods=["GET"])
+@login_required
+def search():
+    search_word = request.args.get("search_word")
+    key = request.args.get("key")
+
+    if key == "subject":
+        results = Subject.query.filter(Subject.title.ilike(f"%{search_word.lower()}%")).all()
+    elif key == "chapter":
+        results = Chapter.query.filter(Chapter.title.ilike(f"%{search_word.lower()}%")).all()
+    elif key == "quiz":
+        results = Quiz.query.filter(Quiz.title.ilike(f"%{search_word.lower()}%")).all()
+    else:
+        flash("invalid key","danger")
+        return redirect(url_for("user.user_dash"))
+    
+    return render_template("user/results.html",results = results, key=key)

@@ -35,7 +35,7 @@ def create_subject():
             return redirect(url_for('admin.create_subject'))
 
         # Create and save new subject
-        new_subject = Subject(title=subject_title, description=subject_description)
+        new_subject = Subject(title=subject_title.lower(), description=subject_description)
         db.session.add(new_subject)
         db.session.commit()
 
@@ -67,7 +67,7 @@ def update_subject(subject_id):
             return redirect(url_for('admin.update_subject', subject_id=subject_id))
 
         # Update subject details
-        subject.title = title
+        subject.title = title.lower()
         subject.description = description
         db.session.commit()
 
@@ -118,7 +118,7 @@ def create_chapter(subject_id):
             flash('description is required', 'danger')
             return redirect(url_for('admin.create_chapter', subject_id=subject_id))
 
-        new_chapter = Chapter(title=title, subject_id=subject_id,description = description)
+        new_chapter = Chapter(title=title.lower(), subject_id=subject_id,description = description)
         db.session.add(new_chapter)
         db.session.commit()
         flash('Chapter created successfully!', 'success')
@@ -142,7 +142,7 @@ def update_chapter(chapter_id):
     chapter = Chapter.query.get_or_404(chapter_id)
 
     if request.method == 'POST':
-        chapter.title = request.form.get('title')
+        chapter.title = request.form.get('title').lower()
         chapter.description = request.form.get('description')
         db.session.commit()
         flash('Chapter updated successfully!', 'success')
@@ -183,16 +183,8 @@ def create_quiz(chapter_id):
         date_of_quiz = request.form['date_of_quiz']
         time_duration = request.form['time_duration']
         start_time= request.form['start_time']  
-        print(f"Raw date_of_quiz: {date_of_quiz}, Type: {type(date_of_quiz)}")
-        print(f"Raw time_duration: {time_duration}, Type: {type(time_duration)}")
         start_time = convert_time_to_db_time(start_time)
-        print(f"Raw start_time: {start_time}, Type: {type(start_time)}")
-
-        print("cal here ############################################")
         date_of_quiz = datetime.strptime(date_of_quiz, '%Y-%m-%d').date()
-        print("cal here -------------------------------------------")
-        print(f"Raw date_of_quiz: {date_of_quiz}, Type: {type(date_of_quiz)}")
-        # start_time = datetime.strptime(start_time, '%H:%M').time()
 
 
         try:
@@ -204,7 +196,7 @@ def create_quiz(chapter_id):
         # Create new Quiz instance
 
         new_quiz = Quiz(
-            title=title,
+            title=title.lower(),
             remarks=remarks,
             date_of_quiz=date_of_quiz,
             time_duration=time_duration,
@@ -229,25 +221,22 @@ def update_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)  # Fetch quiz or return 404 if not found
 
     if request.method == 'POST':
-        quiz.title = request.form['title']
+        quiz.title = request.form['title'].lower()
         quiz.remarks = request.form['remarks']
         date_of_quiz = request.form['date_of_quiz']
         time_duration = request.form['time_duration']
         start_time = request.form['start_time']
 
-        # Validate date
         try:
             validate_quiz_date(date_of_quiz)
         except ValueError as e:
-            flash(str(e), "danger")  # Display actual error message
+            flash(str(e), "danger")  
             return redirect(request.url)
 
-        # Convert input values
         date_of_quiz = datetime.strptime(date_of_quiz, '%Y-%m-%d').date()  
-        start_time = convert_to_time(start_time)  # Converts HH:MM string to time object
-        time_duration = int(time_duration)  # Ensure it's stored as an integer
+        start_time = convert_time_to_db_time(start_time) 
 
-        # Update quiz attributes
+        time_duration = int(time_duration)  
         quiz.start_time = start_time
         quiz.date_of_quiz = date_of_quiz
         quiz.time_duration = time_duration
@@ -470,7 +459,7 @@ def get_user_data(user_id):
 
 @admin_bp.route('/summary')
 def summary():
-    total_users = db.session.query(func.count(User.id)).scalar() or 0
+    total_users = db.session.query(func.count(User.id)).filter(User.role == "user").scalar() or 0
     total_quizzes = db.session.query(func.count(Quiz.id)).scalar() or 0
     total_quiz_attempts = db.session.query(func.count(QuizAttempt.id)).scalar() or 0
     total_questions = db.session.query(func.count(Question.id)).scalar() or 0
@@ -478,6 +467,7 @@ def summary():
 
     most_active_user = db.session.query(User.username, func.count(QuizAttempt.id))\
         .join(QuizAttempt, User.id == QuizAttempt.user_id)\
+        .filter(User.role == "user")\
         .group_by(User.id)\
         .order_by(func.count(QuizAttempt.id).desc())\
         .first()
@@ -486,12 +476,14 @@ def summary():
 
     highest_score_user = db.session.query(User.username, func.max(Scores.total_scored))\
         .join(Scores, User.id == Scores.user_id)\
+        .filter(User.role == "user")\
         .group_by(User.id)\
         .order_by(func.max(Scores.total_scored).desc())\
         .first()
 
     lowest_score_user = db.session.query(User.username, func.min(Scores.total_scored))\
         .join(Scores, User.id == Scores.user_id)\
+        .filter(User.role == "user")\
         .group_by(User.id)\
         .order_by(func.min(Scores.total_scored).asc())\
         .first()
@@ -547,3 +539,26 @@ def summary():
         quiz_titles=quiz_titles,  
         avg_scores=avg_scores 
     )
+
+
+@admin_bp.route("/search",methods=["GET"])
+@admin_required
+def search():
+    search_word = request.args.get("search_word")
+    key = request.args.get("key")
+
+    if key == "subjects":
+        results = Subject.query.filter(Subject.title.ilike(f"%{search_word.lower()}%")).all()
+    elif key == "chapters":
+        results = Chapter.query.filter(Chapter.title.ilike(f"%{search_word.lower()}%")).all()
+    elif key == "users":
+        results = User.query.filter(User.username.ilike(f"%{search_word.lower()}%")).all()
+    elif key == "questions":
+        results = Question.query.filter(Question.question_statement.ilike(f"%{search_word.lower()}%")).all()
+    elif key == "quizzes":
+        results = Quiz.query.filter(Quiz.title.ilike(f"%{search_word.lower()}%")).all()
+    else:
+        flash("invalid key","danger")
+        return redirect(url_for("admin.admin_dash"))
+    print(results)
+    return render_template("admin/results.html",results = results, key=key)
