@@ -19,7 +19,6 @@ class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     remarks = db.Column(db.Text)
-    is_active = db.Column(db.Boolean, default=True)
     date_of_quiz = db.Column(db.Date, nullable=False)
     
     # New fields

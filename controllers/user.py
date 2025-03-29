@@ -1,4 +1,5 @@
 from flask import Blueprint,Flask,render_template,redirect,request, session, flash , url_for
+from sqlalchemy import func
 
 user_bp = Blueprint("user", __name__)  # No URL prefix means it's at "/"
 
@@ -6,7 +7,7 @@ user_bp = Blueprint("user", __name__)  # No URL prefix means it's at "/"
 from models import *
 from database import db
 from datetime import datetime
-
+from utils.helpers import is_quiz_active
 from controllers.utils import  login_required
 
 
@@ -47,6 +48,10 @@ def get_chapter(chapter_id):
 @user_bp.route('/start_quiz/<int:quiz_id>', methods=['POST'])
 @login_required
 def start_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    if not is_quiz_active(quiz):
+        flash("You cannot attempt this quiz", "danger")
+        return   redirect(url_for('user.user_dash'))
 
     user_id = session['user_id']
 
@@ -181,3 +186,73 @@ def quiz_results(quiz_id, attempt_id):
     user_answers = UserAnswer.query.filter_by(attempt_id=attempt_id).all()
 
     return render_template('user/quiz_results.html', attempt=attempt, quiz=quiz, user_answers=user_answers)
+
+
+
+
+
+@user_bp.route('/summary', methods=['GET'])
+@login_required
+def summary():
+    user_id = session.get('user_id')  # Ensure session key exists
+    if not user_id:
+        flash("User not logged in", "danger")
+        return redirect(url_for("auth.login"))
+
+    # Total quizzes attempted
+    total_attempts = db.session.query(func.count(QuizAttempt.id)).filter(QuizAttempt.user_id == user_id).scalar() or 0
+
+    # Total score and average score
+    
+    avg_score = db.session.query(func.avg(Scores.total_scored)).filter(Scores.user_id == user_id).scalar() or 0
+    avg_score = round(avg_score, 2)
+
+    # Total questions answered
+    total_questions_answered = db.session.query(func.count(UserAnswer.id))\
+        .join(QuizAttempt, UserAnswer.attempt_id == QuizAttempt.id)\
+        .filter(QuizAttempt.user_id == user_id).scalar() or 0
+
+
+
+    # Total time spent on quizzes (converted from seconds to minutes)
+    total_time_spent = db.session.query(
+        func.sum(func.strftime('%s', QuizAttempt.time_completed) - func.strftime('%s', QuizAttempt.time_started))
+    ).filter(
+        QuizAttempt.user_id == user_id,
+        QuizAttempt.time_completed.isnot(None)  # Ignore unfinished quizzes
+    ).scalar() or 0
+    total_time_spent = round(total_time_spent / 60, 2)  # Convert seconds to minutes
+
+    # Best performing quiz (highest score)
+    best_quiz = db.session.query(Quiz.title, Scores.total_scored)\
+        .join(Scores, Quiz.id == Scores.quiz_id)\
+        .filter(Scores.user_id == user_id)\
+        .order_by(Scores.total_scored.desc())\
+        .first()
+
+    # Worst performing quiz (lowest score)
+    worst_quiz = db.session.query(Quiz.title, Scores.total_scored)\
+        .join(Scores, Quiz.id == Scores.quiz_id)\
+        .filter(Scores.user_id == user_id)\
+        .order_by(Scores.total_scored.asc())\
+        .first()
+
+    # Average score per subject
+    subjects = db.session.query(Subject.title, func.avg(Scores.total_scored))\
+        .join(Chapter, Subject.id == Chapter.subject_id)\
+        .join(Quiz, Chapter.id == Quiz.chapter_id)\
+        .join(Scores, Quiz.id == Scores.quiz_id)\
+        .filter(Scores.user_id == user_id)\
+        .group_by(Subject.id)\
+        .all()
+
+    return render_template(
+        'user/summary.html',
+        total_attempts=total_attempts,
+        avg_score=avg_score,
+        total_questions_answered=total_questions_answered,
+        total_time_spent=total_time_spent,
+        best_quiz=best_quiz,
+        worst_quiz=worst_quiz,
+        subjects=subjects
+    )

@@ -19,18 +19,17 @@ def convert_time_to_db_time(time_str):
         raise ValueError("Invalid time format. Expected HH:MM")
     
 
-def validate_quiz_date(date_str):
-    try:
-        quiz_date = datetime.strptime(date_str, '%Y-%m-%d').date()
 
-        # Check if the date is in the past
-        if quiz_date < date.today():
-            raise ValueError("Quiz date cannot be in the past!")
+def validate_quiz_date(date_value):
+    """Check if the quiz date is valid (not in the past)."""
+    if isinstance(date_value, str):  # If it's a string, convert it to a date
+        date_value = datetime.strptime(date_value, '%Y-%m-%d').date()
 
-        return quiz_date  # Return the valid date object
+    if date_value < date.today():
+        raise ValueError("Quiz date cannot be in the past!")
 
-    except ValueError as e:
-        raise ValueError(str(e))  # Raise error with message
+    return date_value
+
     
 
 

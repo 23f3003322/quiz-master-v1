@@ -1,0 +1,286 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center pb-2 border-bottom">
+                <h2><i class="fas fa-tachometer-alt me-2"></i>Admin Summary Dashboard</h2>
+                <button class="btn btn-outline-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body bg-primary text-white rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">Total Users</h5>
+                            <h2 class="display-4 mb-0">{{ total_users }}</h2>
+                        </div>
+                        <div class="bg-white rounded-circle p-2 text-primary">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body bg-success text-white rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">Total Quizzes</h5>
+                            <h2 class="display-4 mb-0">{{ total_quizzes }}</h2>
+                        </div>
+                        <div class="bg-white rounded-circle p-2 text-success">
+                            <i class="fas fa-question-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body bg-warning text-white rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">Quiz Attempts</h5>
+                            <h2 class="display-4 mb-0">{{ total_quiz_attempts }}</h2>
+                        </div>
+                        <div class="bg-white rounded-circle p-2 text-warning">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body bg-danger text-white rounded">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">Total Questions</h5>
+                            <h2 class="display-4 mb-0">{{ total_questions }}</h2>
+                        </div>
+                        <div class="bg-white rounded-circle p-2 text-danger">
+                            <i class="fas fa-list fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- User Engagement Statistics -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-friends me-2"></i>User Engagement</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="text-primary">
+                                    <i class="fas fa-award me-2"></i>Most Active User
+                                </th>
+                                <td>
+                                    {% if most_active_user %}
+                                        <span class="fw-bold">{{ most_active_user[0] }}</span>
+                                        <span class="badge bg-primary ms-2">{{ most_active_user[1] }} attempts</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-primary">
+                                    <i class="fas fa-calculator me-2"></i>Avg Attempts Per User
+                                </th>
+                                <td>
+                                    <span class="fw-bold">{{ avg_quiz_attempts_per_user }}</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-success">
+                                    <i class="fas fa-trophy me-2"></i>Highest Scoring User
+                                </th>
+                                <td>
+                                    {% if highest_score_user %}
+                                        <span class="fw-bold">{{ highest_score_user[0] }}</span>
+                                        <span class="badge bg-success ms-2">{{ highest_score_user[1] }}</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Lowest Scoring User
+                                </th>
+                                <td>
+                                    {% if lowest_score_user %}
+                                        <span class="fw-bold">{{ lowest_score_user[0] }}</span>
+                                        <span class="badge bg-danger ms-2">{{ lowest_score_user[1] }}</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Performance Metrics -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Quiz Performance</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="text-primary">
+                                    <i class="fas fa-star me-2"></i>Most Attempted Quiz
+                                </th>
+                                <td>
+                                    {% if most_attempted_quiz %}
+                                        <span class="fw-bold">{{ most_attempted_quiz[0] }}</span>
+                                        <span class="badge bg-primary ms-2">{{ most_attempted_quiz[1] }} attempts</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-secondary">
+                                    <i class="fas fa-thumbs-down me-2"></i>Least Attempted Quiz
+                                </th>
+                                <td>
+                                    {% if least_attempted_quiz %}
+                                        <span class="fw-bold">{{ least_attempted_quiz[0] }}</span>
+                                        <span class="badge bg-secondary ms-2">{{ least_attempted_quiz[1] }} attempts</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-success">
+                                    <i class="fas fa-thumbs-up me-2"></i>Best Performing Quiz
+                                </th>
+                                <td>
+                                    {% if best_performing_quiz %}
+                                        <span class="fw-bold">{{ best_performing_quiz[0] }}</span>
+                                        <span class="badge bg-success ms-2">Avg: {{ best_performing_quiz[1]|round(2) }}</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="text-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>Worst Performing Quiz
+                                </th>
+                                <td>
+                                    {% if worst_performing_quiz %}
+                                        <span class="fw-bold">{{ worst_performing_quiz[0] }}</span>
+                                        <span class="badge bg-danger ms-2">Avg: {{ worst_performing_quiz[1]|round(2) }}</span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Average Score Per Quiz -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Average Scores Per Quiz</h4>
+                    <span class="badge bg-white text-info">{{ avg_score_per_quiz|length }} Quizzes</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="fw-bold">Quiz Title</th>
+                                    <th scope="col" class="fw-bold text-center">Average Score</th>
+                                    <th scope="col" class="fw-bold text-center">Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for quiz, avg_score in avg_score_per_quiz %}
+                                <tr>
+                                    <td>{{ quiz }}</td>
+                                    <td class="text-center">{{ avg_score|round(2) }}</td>
+                                    <td class="text-center">
+                                        <span class="badge 
+                                            {% if avg_score >= 80 %}bg-success
+                                            {% elif avg_score >= 60 %}bg-info
+                                            {% elif avg_score >= 40 %}bg-warning
+                                            {% else %}bg-danger{% endif %}">
+                                            {% if avg_score >= 80 %}Excellent
+                                            {% elif avg_score >= 60 %}Good
+                                            {% elif avg_score >= 40 %}Average
+                                            {% else %}Poor{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<canvas id="quizScoreChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('quizScoreChart').getContext('2d');
+    var quizScoreChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ quiz_titles | tojson }},
+            datasets: [{
+                label: 'Average Scores',
+                data: {{ avg_scores | tojson }},
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -2,6 +2,7 @@ from flask import Blueprint, render_template,request,flash,redirect,url_for
 from .utils import admin_required
 from models import *
 from database import db
+from sqlalchemy import func
 from datetime import datetime
 from utils.helpers import convert_time_to_db_time, validate_quiz_date,convert_to_time
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -108,12 +109,16 @@ def create_chapter(subject_id):
 
     if request.method == 'POST':
         title = request.form.get('title')
+        description = request.form.get('description')
 
         if not title:
             flash('Title is required', 'danger')
             return redirect(url_for('admin.create_chapter', subject_id=subject_id))
+        if not description:
+            flash('description is required', 'danger')
+            return redirect(url_for('admin.create_chapter', subject_id=subject_id))
 
-        new_chapter = Chapter(title=title, subject_id=subject_id)
+        new_chapter = Chapter(title=title, subject_id=subject_id,description = description)
         db.session.add(new_chapter)
         db.session.commit()
         flash('Chapter created successfully!', 'success')
@@ -138,6 +143,7 @@ def update_chapter(chapter_id):
 
     if request.method == 'POST':
         chapter.title = request.form.get('title')
+        chapter.description = request.form.get('description')
         db.session.commit()
         flash('Chapter updated successfully!', 'success')
         return redirect(url_for('admin.get_subject', subject_id=chapter.subject_id))
@@ -177,10 +183,17 @@ def create_quiz(chapter_id):
         date_of_quiz = request.form['date_of_quiz']
         time_duration = request.form['time_duration']
         start_time= request.form['start_time']  
-        print(date_of_quiz)
-        print(time_duration)
-        print(start_time)
+        print(f"Raw date_of_quiz: {date_of_quiz}, Type: {type(date_of_quiz)}")
+        print(f"Raw time_duration: {time_duration}, Type: {type(time_duration)}")
         start_time = convert_time_to_db_time(start_time)
+        print(f"Raw start_time: {start_time}, Type: {type(start_time)}")
+
+        print("cal here ############################################")
+        date_of_quiz = datetime.strptime(date_of_quiz, '%Y-%m-%d').date()
+        print("cal here -------------------------------------------")
+        print(f"Raw date_of_quiz: {date_of_quiz}, Type: {type(date_of_quiz)}")
+        # start_time = datetime.strptime(start_time, '%H:%M').time()
+
 
         try:
             validate_quiz_date(date_of_quiz)
@@ -420,3 +433,117 @@ def delete_question(question_id):
 
     flash("chapter deleted successfully!", "success")
     return redirect(url_for('admin.admin_dash'))
+
+
+
+@admin_bp.route("/users",methods=['GET'])
+@admin_required
+def get_users():
+    users = User.query.filter_by(role='user').all()
+
+    return render_template('admin/user/view_users.html',users = users)
+
+
+@admin_bp.route('/user/<int:user_id>', methods=['GET'])
+@admin_required  # Ensure only admins can access this route
+def get_user_data(user_id):
+    user = User.query.get_or_404(user_id)  # Fetch user or return 404 if not found
+
+    # Query user's quiz attempts with their scores
+    user_attempts = (
+        db.session.query(
+            Quiz.title.label("quiz_title"),
+            QuizAttempt.time_started,
+            QuizAttempt.time_completed,
+            QuizAttempt.status,
+            Scores.total_scored
+        )
+        .join(Quiz, Quiz.id == QuizAttempt.quiz_id)  # Join with Quiz table
+        .outerjoin(Scores, Scores.attempt_id == QuizAttempt.id)  # Join with Scores table
+        .filter(QuizAttempt.user_id == user_id)
+        .all()
+    )
+
+    return render_template('admin/user/user_data.html', user=user, attempts=user_attempts)
+
+
+
+@admin_bp.route('/summary')
+def summary():
+    total_users = db.session.query(func.count(User.id)).scalar() or 0
+    total_quizzes = db.session.query(func.count(Quiz.id)).scalar() or 0
+    total_quiz_attempts = db.session.query(func.count(QuizAttempt.id)).scalar() or 0
+    total_questions = db.session.query(func.count(Question.id)).scalar() or 0
+
+
+    most_active_user = db.session.query(User.username, func.count(QuizAttempt.id))\
+        .join(QuizAttempt, User.id == QuizAttempt.user_id)\
+        .group_by(User.id)\
+        .order_by(func.count(QuizAttempt.id).desc())\
+        .first()
+
+    avg_quiz_attempts_per_user = round(total_quiz_attempts / total_users, 2) if total_users else 0
+
+    highest_score_user = db.session.query(User.username, func.max(Scores.total_scored))\
+        .join(Scores, User.id == Scores.user_id)\
+        .group_by(User.id)\
+        .order_by(func.max(Scores.total_scored).desc())\
+        .first()
+
+    lowest_score_user = db.session.query(User.username, func.min(Scores.total_scored))\
+        .join(Scores, User.id == Scores.user_id)\
+        .group_by(User.id)\
+        .order_by(func.min(Scores.total_scored).asc())\
+        .first()
+
+
+    most_attempted_quiz = db.session.query(Quiz.title, func.count(QuizAttempt.id))\
+        .join(QuizAttempt, Quiz.id == QuizAttempt.quiz_id)\
+        .group_by(Quiz.id)\
+        .order_by(func.count(QuizAttempt.id).desc())\
+        .first()
+
+    least_attempted_quiz = db.session.query(Quiz.title, func.count(QuizAttempt.id))\
+        .join(QuizAttempt, Quiz.id == QuizAttempt.quiz_id)\
+        .group_by(Quiz.id)\
+        .order_by(func.count(QuizAttempt.id).asc())\
+        .first()
+
+    best_performing_quiz = db.session.query(Quiz.title, func.avg(Scores.total_scored))\
+        .join(Scores, Quiz.id == Scores.quiz_id)\
+        .group_by(Quiz.id)\
+        .order_by(func.avg(Scores.total_scored).desc())\
+        .first()
+
+    worst_performing_quiz = db.session.query(Quiz.title, func.avg(Scores.total_scored))\
+        .join(Scores, Quiz.id == Scores.quiz_id)\
+        .group_by(Quiz.id)\
+        .order_by(func.avg(Scores.total_scored).asc())\
+        .first()
+
+    avg_score_per_quiz = db.session.query(Quiz.title, func.avg(Scores.total_scored))\
+        .join(Scores, Quiz.id == Scores.quiz_id)\
+        .group_by(Quiz.id)\
+        .all()
+
+    quiz_titles = [quiz[0] for quiz in avg_score_per_quiz]
+    avg_scores = [round(quiz[1], 2) for quiz in avg_score_per_quiz]
+
+    return render_template(
+        'admin/summary.html',
+        total_users=total_users,
+        total_quizzes=total_quizzes,
+        total_quiz_attempts=total_quiz_attempts,
+        total_questions=total_questions,
+        most_active_user=most_active_user,
+        avg_quiz_attempts_per_user=avg_quiz_attempts_per_user,
+        highest_score_user=highest_score_user,
+        lowest_score_user=lowest_score_user,
+        most_attempted_quiz=most_attempted_quiz,
+        least_attempted_quiz=least_attempted_quiz,
+        best_performing_quiz=best_performing_quiz,
+        worst_performing_quiz=worst_performing_quiz,
+        avg_score_per_quiz=avg_score_per_quiz,
+        quiz_titles=quiz_titles,  
+        avg_scores=avg_scores 
+    )

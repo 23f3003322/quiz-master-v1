@@ -1,0 +1,130 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">
+                <i class="fas fa-chart-bar me-2"></i>Quiz Attempts for {{ user.fullName }}
+            </h2>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-light text-dark me-3">
+                    <i class="fas fa-user me-1"></i>{{ user.username }}
+                </span>
+                <a href="{{ url_for('admin.get_users') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-1"></i>Back to users
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if attempts %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Quiz Title</th>
+                                <th>Start Time</th>
+                                <th>Completion Time</th>
+                                <th>Status</th>
+                                <th class="text-center">Marks Scored</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in attempts %}
+                            <tr class="
+                                {% if attempt.status == 'Completed' %}table-success
+                                {% elif attempt.status == 'In Progress' %}table-warning
+                                {% elif attempt.status == 'Failed' %}table-danger
+                                {% else %}table-secondary{% endif %}
+                            ">
+                                <td>
+                                    <strong>{{ attempt.quiz_title }}</strong>
+                                </td>
+                                <td>
+                                    <i class="fas fa-clock me-1 text-muted"></i>
+                                    {{ attempt.time_started.strftime('%Y-%m-%d %H:%M') }}
+                                </td>
+                                <td>
+                                    {% if attempt.time_completed %}
+                                        <i class="fas fa-check-circle me-1 text-success"></i>
+                                        {{ attempt.time_completed.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        <span class="text-muted">Not Completed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if attempt.status == 'Completed' %}bg-success
+                                        {% elif attempt.status == 'In Progress' %}bg-warning
+                                        {% elif attempt.status == 'Failed' %}bg-danger
+                                        {% else %}bg-secondary{% endif %}
+                                    ">
+                                        {{ attempt.status }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    {% if attempt.total_scored is not none %}
+                                        <span class="badge bg-primary">
+                                            {{ attempt.total_scored }} pts
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <i class="fas fa-chart-pie me-2"></i>Performance Summary
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Total Quizzes:</strong> {{ attempts|length }}</p>
+                                <p><strong>Completed Quizzes:</strong> 
+                                    {{ attempts|selectattr('status', 'equalto', 'Completed')|list|length }}
+                                </p>
+                                <p><strong>Average Score:</strong> 
+                                    {% set valid_scores = attempts|selectattr('total_scored', 'defined')|list %}
+                                    {% if valid_scores %}
+                                        {{ (valid_scores|map(attribute='total_scored')|sum / valid_scores|length)|round(2) }} pts
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This user has not attempted any quizzes yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewAttemptDetails(attemptId) {
+        // Placeholder for detailed view of quiz attempt
+        // You would typically link this to a modal or a detailed view page
+        window.location.href = `/admin/attempt/${attemptId}`;
+    }
+</script>
+{% endblock %}
+{% block extra_css %}
+<style>
+    /* Additional custom styles can be added here if needed */
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,123,255,0.1);
+        transition: background-color 0.3s ease;
+    }
+</style>
+{% endblock %}
