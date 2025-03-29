@@ -1,0 +1,35 @@
+{% extends "user/base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="border-bottom pb-3">Search Results</h2>
+    
+    {% if results %}
+        <div class="list-group mt-3">
+            {% for result in results %}
+                <a 
+                    {% if key == "subject" %}
+                        href="{{ url_for('user.get_subject', subject_id=result.id) }}"
+                    {% elif key == "chapter" %}
+                        href="{{ url_for('user.get_chapter', chapter_id=result.id) }}"
+                    {% elif key == "quiz" %}
+                        href="{{ url_for('user.start_quiz', quiz_id=result.id) }}"
+                    {% endif %}
+                    class="list-group-item list-group-item-action">
+                    {% if key == "subject" %}
+                        <i class="fas fa-book me-2"></i> {{ result.title }} (Subject)
+                    {% elif key == "chapter" %}
+                        <i class="fas fa-file-alt me-2"></i> {{ result.title }} (Chapter)
+                    {% elif key == "quiz" %}
+                        <i class="fas fa-question-circle me-2"></i> {{ result.title }} (Quiz)
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted mt-3">No results found for your search.</p>
+    {% endif %}
+    
+    <a href="{{ url_for('user.user_dash') }}" class="btn btn-primary mt-3">Back to Dashboard</a>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "user/base.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="border-bottom pb-3">
+                <i class="fas fa-chart-line me-2"></i>Your Learning Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="m-0"><i class="fas fa-user-graduate me-2"></i>Performance Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-primary mb-0">{{ total_attempts }}</h1>
+                                    <p class="text-muted">Quizzes Attempted</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-success mb-0">{{ avg_score }}%</h1>
+                                    <p class="text-muted">Average Score</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-info mb-0">{{ total_questions_answered }}</h1>
+                                    <p class="text-muted">Questions Answered</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-0 bg-light">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-warning mb-0">{{ total_time_spent }}</h1>
+                                    <p class="text-muted">Minutes Spent Learning</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-success text-white">
+                    <h4 class="m-0"><i class="fas fa-trophy me-2"></i>Achievements</h4>
+                </div>
+                <div class="card-body">
+                    {% if best_quiz %}
+                    <div class="mb-4">
+                        <h5 class="text-success">
+                            <i class="fas fa-award me-2"></i>Best Performance
+                        </h5>
+                        <div class="bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ best_quiz[0] }}</h6>
+                                <span class="badge bg-success">{{ best_quiz[1] }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if worst_quiz %}
+                    <div>
+                        <h5 class="text-danger">
+                            <i class="fas fa-bullseye me-2"></i>Room for Improvement
+                        </h5>
+                        <div class="bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ worst_quiz[0] }}</h6>
+                                <span class="badge bg-danger">{{ worst_quiz[1] }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if subjects %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h4 class="m-0"><i class="fas fa-chart-bar me-2"></i>Subject Performance Chart</h4>
+            </div>
+            <div class="card-body">
+                <canvas id="subjectScoreChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('subjectScoreChart').getContext('2d');
+        var subjectScoreChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [{% for subject, _ in subjects %} "{{ subject }}", {% endfor %}],
+                datasets: [{
+                    label: 'Average Score',
+                    data: [{% for _, score in subjects %} {{ score|round(2) }}, {% endfor %}],
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+
+</div>
+
+
+{% endblock %}

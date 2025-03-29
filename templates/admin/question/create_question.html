@@ -42,6 +42,7 @@
                                 class="form-control" 
                                 id="score" 
                                 name="score" 
+                                type="number"
                                 rows="3" 
                                 required
                                 placeholder="score"
@@ -100,7 +101,7 @@
                     </form>
                 </div>
                 <div class="card-footer text-center">
-                    <a href="{{ url_for('admin_dash') }}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ url_for('admin.admin_dash') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>

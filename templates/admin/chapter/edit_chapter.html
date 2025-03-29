@@ -25,7 +25,7 @@
                     {% endwith %}
 
                     <!-- Edit chapter Form -->
-                    <form action="{{ url_for('update_chapter', chapter_id=chapter.id) }}" method="POST">
+                    <form action="{{ url_for('admin.update_chapter', chapter_id=chapter.id) }}" method="POST">
                         <div class="mb-3">
                             <label for="title" class="form-label">Chapter Title</label>
                             <input 
@@ -59,7 +59,7 @@
             
             <!-- Back to Dashboard Link -->
             <div class="text-center mt-3">
-                <a href="{{ url_for('get_subject', subject_id=chapter.subject_id) }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('admin.get_subject', subject_id=chapter.subject_id) }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                 </a>
             </div>

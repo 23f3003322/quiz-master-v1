@@ -1,0 +1,36 @@
+{% extends "user/base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>My Quiz Scores</h2>
+    {% if user_attempts %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Quiz Title</th>
+                    <th>Date Attempted</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in user_attempts %}
+                <tr>
+                    <td>{{ attempt.quiz.title }}</td>
+                    <td>{{ attempt.time_stamp_of_attempt.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>{{ attempt.total_scored }}</td>
+                    <td>{{ attempt.attempt.status }}</td>
+                    <td>
+                        <a href="{{ url_for('user.quiz_results',quiz_id = attempt.quiz.id, attempt_id=attempt.attempt_id) }}" class="btn btn-info btn-sm">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No quiz attempts found.</p>
+    {% endif %}
+</div>
+{% endblock %}

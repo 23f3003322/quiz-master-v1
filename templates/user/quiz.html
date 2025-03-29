@@ -65,7 +65,7 @@
                 </ul>
             </div>
 
-            <form action="{{ url_for('submit_quiz', quiz_id=quiz.id, attempt_id=attempt_id) }}" method="POST" id="quizForm">
+            <form action="{{ url_for('user.submit_quiz', quiz_id=quiz.id, attempt_id=attempt_id) }}" method="POST" id="quizForm">
                 {% for question in questions %}
                 <div class="question-box">
                     <div class="question-header">

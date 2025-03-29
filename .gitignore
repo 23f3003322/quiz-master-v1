@@ -13,7 +13,7 @@ __pycache__/
 .DS_Store
 
 instance
-.sqlite3
+*.sqlite3
 
 # Pytest and coverage reports
 .coverage

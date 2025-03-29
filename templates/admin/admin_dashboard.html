@@ -2,11 +2,11 @@
 {% block content %}
 
 
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <main class="  px-md-4">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">Admin Dashboard</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
-                        <a href="{{ url_for('create_subject') }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ url_for('admin.create_subject') }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-plus-circle me-2"></i>Create New Subject
                         </a>
                     </div>
@@ -28,16 +28,16 @@
                         <tbody>
                             {% for subject in subjects %}
                             <tr>
-                                <td> <a href="{{ url_for('get_subject', subject_id=subject.id) }}">{{ subject.id }}</a></td>
-                                <td> <a href="{{ url_for('get_subject', subject_id=subject.id) }}">{{ subject.title}}</a></td>
+                                <td> <a href="{{ url_for('admin.get_subject', subject_id=subject.id) }}">{{ subject.id }}</a></td>
+                                <td> <a href="{{ url_for('admin.get_subject', subject_id=subject.id) }}">{{ subject.title}}</a></td>
                                 <td>{{ subject.description }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a href="{{ url_for('update_subject', subject_id=subject.id) }}" 
+                                        <a href="{{ url_for('admin.update_subject', subject_id=subject.id) }}" 
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <a href="{{ url_for('delete_subject', subject_id=subject.id) }}" 
+                                        <a href="{{ url_for('admin.delete_subject', subject_id=subject.id) }}" 
                                            class="btn btn-sm btn-outline-danger" 
                                            onclick="return confirm('Are you sure you want to delete this subject?');">
                                             <i class="bi bi-trash"></i>

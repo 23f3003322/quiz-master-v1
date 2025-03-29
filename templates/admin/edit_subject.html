@@ -24,7 +24,7 @@
                     {% endwith %}
 
                     <!-- Create Subject Form -->
-                    <form action="{{ url_for('update_subject', subject_id=subject.id) }}" method="POST">
+                    <form action="{{ url_for('admin.update_subject', subject_id=subject.id) }}" method="POST">
                         <div class="mb-3">
                             <label for="title" class="form-label">Subject Title</label>
                             <input 
@@ -58,7 +58,7 @@
             
             <!-- Back to Dashboard Link -->
             <div class="text-center mt-3">
-                <a href="{{ url_for('admin_dash') }}" class="btn btn-outline-secondary">
+                <a href="{{ url_for('admin.admin_dash') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                 </a>
             </div>
