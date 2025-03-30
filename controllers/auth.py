@@ -1,9 +1,7 @@
 from flask import Flask,Blueprint,render_template,redirect,request, session, flash , url_for
 from flask import current_app as app
-from functools import wraps
 from models import *
 from database import db
-from datetime import datetime
 from werkzeug.security import check_password_hash,generate_password_hash
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")

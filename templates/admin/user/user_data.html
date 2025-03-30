@@ -87,7 +87,7 @@
                             <div class="card-body">
                                 <p><strong>Total Quizzes:</strong> {{ attempts|length }}</p>
                                 <p><strong>Completed Quizzes:</strong> 
-                                    {{ attempts|selectattr('status', 'equalto', 'Completed')|list|length }}
+                                    {{ attempts|selectattr('status', 'equalto', 'completed')|list|length }}
                                 </p>
                                 <p><strong>Average Score:</strong> 
                                     {% set valid_scores = attempts|selectattr('total_scored', 'defined')|list %}

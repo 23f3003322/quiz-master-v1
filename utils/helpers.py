@@ -1,20 +1,26 @@
 from datetime import datetime,timedelta, date
-
+import pytz
 
 from datetime import datetime, timedelta
+IST = pytz.timezone('Asia/Kolkata')
 
 def is_quiz_active(quiz):
-    now = datetime.now()
-    quiz_start = datetime.combine(quiz.date_of_quiz, quiz.start_time)
-    quiz_end = quiz_start + timedelta(minutes=quiz.time_duration)
+    ist_now = datetime.now(IST)  # Get current IST time
 
-    if now < quiz_start:
-        return False, f"Quiz has not started yet. It starts on {quiz.date_of_quiz} at  {quiz_start.strftime('%H:%M')}"
-    elif now > quiz_end:
-        return False, f"Quiz time has ended. It ended on {quiz.date_of_quiz}  at {quiz_end.strftime('%H:%M')}"
 
-    return True, None  
+    quiz_start_naive = datetime.combine(quiz.date_of_quiz, quiz.start_time)  
+    quiz_start = IST.localize(quiz_start_naive) 
 
+    quiz_end = quiz_start + timedelta(minutes=quiz.time_duration)  
+
+    print(f"Debug: IST Now: {ist_now}, Quiz Start: {quiz_start}, Quiz End: {quiz_end}")
+
+    if ist_now < quiz_start:
+        return False, f"Quiz has not started yet. It starts on {quiz.date_of_quiz} at {quiz_start.strftime('%H:%M')} IST"
+    elif ist_now > quiz_end:
+        return False, f"Quiz time has ended. It ended on {quiz.date_of_quiz} at {quiz_end.strftime('%H:%M')} IST"
+
+    return True, None
 
 
 def convert_time_to_db_time(time_str):
@@ -33,25 +39,29 @@ def convert_time_to_db_time(time_str):
     
 
 
-def validate_quiz_date(date_value):
-    if isinstance(date_value, str):  
-        date_value = datetime.strptime(date_value, '%Y-%m-%d').date()
+def validate_quiz_date(date_value, start_time):
+    try:
 
-    if date_value < date.today():
-        raise ValueError("Quiz date cannot be in the past!")
-
-    return date_value
-
-    
+        if isinstance(date_value, str):
+            date_value = datetime.strptime(date_value, '%Y-%m-%d').date()
 
 
-def convert_to_time(time_value):
+        if isinstance(start_time, str):
+            start_time = datetime.strptime(start_time, '%H:%M').time()
 
-    if isinstance(time_value, str): 
-        print("call is here1") 
-        return datetime.strptime(time_value, '%H:%M').time()
-    elif isinstance(time_value, datetime.time):  
-        print("call is here2") 
-        return time_value
-    else:
-        raise ValueError("Invalid time format. Expected 'HH:MM' string or time object.")
+
+        now_utc = datetime.utcnow()
+        now_ist = now_utc.replace(tzinfo=pytz.utc).astimezone(IST)
+
+
+        quiz_start_naive = datetime.combine(date_value, start_time)  
+        quiz_start_datetime = IST.localize(quiz_start_naive)  
+
+
+        if quiz_start_datetime < now_ist:
+            return "Quiz start time cannot be in the past!"
+
+        return None  
+
+    except Exception as e:
+        return str(e)

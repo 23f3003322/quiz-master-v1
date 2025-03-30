@@ -4,7 +4,7 @@ from models import *
 from database import db
 from sqlalchemy import func
 from datetime import datetime
-from utils.helpers import convert_time_to_db_time, validate_quiz_date,convert_to_time
+from utils.helpers import convert_time_to_db_time, validate_quiz_date
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 @admin_bp.route("/")
@@ -182,14 +182,13 @@ def create_quiz(chapter_id):
 
 
         try:
-            validate_quiz_date(date_of_quiz)
-        except ValueError:
-            flash('Invalid date', 'danger')
-            return redirect(url_for('admin.create_quiz',chapter_id= chapter.id))
 
+            error_message = validate_quiz_date(date_of_quiz, start_time)
+            if error_message:
+                raise ValueError(error_message)  
 
-
-        new_quiz = Quiz(
+            # If no error, save quiz
+            new_quiz = Quiz(
             title=title.lower(),
             remarks=remarks,
             date_of_quiz=date_of_quiz,
@@ -199,11 +198,19 @@ def create_quiz(chapter_id):
         )
 
 
-        db.session.add(new_quiz)
-        db.session.commit()
+            db.session.add(new_quiz)
+            db.session.commit()
 
-        flash('Quiz created successfully!', 'success') 
-        return redirect(url_for('admin.get_chapter',chapter_id=chapter.id))
+            flash('Quiz created successfully!', 'success') 
+            return redirect(url_for('admin.get_chapter',chapter_id=chapter.id))
+
+        except ValueError:
+            flash('Invalid date', 'danger')
+            return redirect(url_for('admin.create_quiz',chapter_id= chapter.id))
+
+
+
+
 
     return render_template('admin/quiz/create_quiz.html', chapter=chapter)
 
@@ -222,22 +229,26 @@ def update_quiz(quiz_id):
         start_time = request.form['start_time']
 
         try:
-            validate_quiz_date(date_of_quiz)
+            date_of_quiz = datetime.strptime(date_of_quiz, '%Y-%m-%d').date()  
+            start_time = convert_time_to_db_time(start_time) 
+            error_message = validate_quiz_date(date_of_quiz, start_time)
+            if error_message:
+                raise ValueError(error_message)  
+            
+
+            time_duration = int(time_duration)  
+            quiz.start_time = start_time
+            quiz.date_of_quiz = date_of_quiz
+            quiz.time_duration = time_duration
+
+            db.session.commit()
+            flash('Quiz updated successfully!', 'success')
+            return redirect(url_for('admin.get_chapter', chapter_id=quiz.chapter_id))  
         except ValueError as e:
             flash(str(e), "danger")  
             return redirect(request.url)
 
-        date_of_quiz = datetime.strptime(date_of_quiz, '%Y-%m-%d').date()  
-        start_time = convert_time_to_db_time(start_time) 
 
-        time_duration = int(time_duration)  
-        quiz.start_time = start_time
-        quiz.date_of_quiz = date_of_quiz
-        quiz.time_duration = time_duration
-
-        db.session.commit()
-        flash('Quiz updated successfully!', 'success')
-        return redirect(url_for('admin.get_chapter', chapter_id=quiz.chapter_id))  
 
     return render_template('admin/quiz/edit_quiz.html', quiz=quiz)
 

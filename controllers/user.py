@@ -1,6 +1,6 @@
 from flask import Blueprint,Flask,render_template,redirect,request, session, flash , url_for
 from sqlalchemy import func
-
+import pytz 
 user_bp = Blueprint("user", __name__)  
 
 
@@ -11,7 +11,7 @@ from utils.helpers import is_quiz_active
 from controllers.utils import  login_required
 
 
-
+IST = pytz.timezone('Asia/Kolkata')
 
 def fetch_subject_and_chapters(subject_id):
     """Fetch subject and related chapters."""
@@ -50,27 +50,34 @@ def get_chapter(chapter_id):
 def start_quiz(quiz_id):
     user_id = session["user_id"]
     quiz = Quiz.query.get_or_404(quiz_id)
+
+    # Check if the quiz is active
     is_active, error_message = is_quiz_active(quiz)
     if not is_active:
         flash(error_message, "danger")
-        return redirect(url_for('user.user_dash'))
-    try:
+        return redirect(url_for('user.get_chapter', chapter_id=quiz.chapter_id))
+    
+    print(quiz.questions)
+    if not quiz.questions or len(quiz.questions) == 0:
+        flash("This quiz has no questions! Please contact the administrator.", "danger")
+        return redirect(url_for('user.get_chapter', chapter_id=quiz.chapter_id))
 
-        new_attempt = QuizAttempt(user_id=user_id, quiz_id=quiz_id, time_started=datetime.utcnow())
+    try:
+        # Get current time in IST
+        utc_now = datetime.utcnow()
+        ist_now = utc_now.replace(tzinfo=pytz.utc).astimezone(IST)
+
+        # Create a new quiz attempt
+        new_attempt = QuizAttempt(user_id=user_id, quiz_id=quiz_id, time_started=ist_now)
         db.session.add(new_attempt)
         db.session.commit()
 
         flash("Quiz started successfully!", "success")
-    
-             
         return redirect(url_for('user.quiz_questions', quiz_id=quiz_id, attempt_id=new_attempt.id))
-    except:
-        flash("You cannot attempt this quiz", "danger")
-        return   redirect(url_for('user.user_dash'))
 
-
-
-
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "danger")
+        return redirect(url_for('user.user_dash'))
 
 
 
@@ -155,20 +162,23 @@ def submit_quiz(quiz_id, attempt_id):
         
 
         total_score += score
-    
+
+    utc_now = datetime.utcnow()
+    ist_now = utc_now.replace(tzinfo=pytz.utc).astimezone(IST)
 
     score_entry = Scores(
         user_id=attempt.user_id,
         quiz_id=quiz_id,
         attempt_id=attempt_id,
-        time_stamp_of_attempt=datetime.utcnow(),
+        time_stamp_of_attempt=ist_now,
         total_scored=total_score
     )
     db.session.add(score_entry)
     
-
+    utc_now = datetime.utcnow()
+    ist_now = utc_now.replace(tzinfo=pytz.utc).astimezone(IST)
     attempt.status = "completed"
-    attempt.time_completed = datetime.utcnow()
+    attempt.time_completed = ist_now
     
 
     db.session.commit()
