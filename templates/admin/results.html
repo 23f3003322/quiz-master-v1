@@ -15,21 +15,21 @@
                     {% elif key == "users" %}
                         href="{{ url_for('admin.get_user_data', user_id=result.id) }}"
                     {% elif key == "questions" %}
-                        href="{{ url_for('admin.get_chapter', question_id=result.id) }}"
+                        href="{{ url_for('admin.update_question', question_id=result.id) }}"
                     {% elif key == "quizzes" %}
                         href="{{ url_for('admin.get_quiz', quiz_id=result.id) }}"
                     {% endif %}
                     class="list-group-item list-group-item-action">
                     {% if key == "subjects" %}
-                        <i class="fas fa-book me-2"></i> {{ result.title }} (Subject)
+                        <i class="fas fa-book me-2"></i> {{ result.title }} 
                     {% elif key == "users" %}
-                        <i class="fas fa-file-alt me-2"></i> {{ result.username }} (User)
+                        <i class="fas fa-file-alt me-2"></i> {{ result.username }} 
                     {% elif key == "chapters" %}
-                        <i class="fas fa-file-alt me-2"></i> {{ result.title }} (Chapter)
+                        <i class="fas fa-file-alt me-2"></i> {{ result.title }} 
                     {% elif key == "quizzes" %}
-                        <i class="fas fa-question-circle me-2"></i> {{ result.title }} (Quiz)
-                    {% elif key == "questions" %}
-                        <i class="fas fa-question-circle me-2"></i> {{ result.title }} (Question)
+                        <i class="fas fa-question-circle me-2"></i> {{ result.title }} 
+                        {% elif key == "questions" %}
+                        <i class="fas fa-question-circle me-2"></i> {{ result.question_statement }} 
                     {% endif %}
                 </a>
             {% endfor %}

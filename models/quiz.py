@@ -6,7 +6,7 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     description = db.Column(db.String(250))
-    chapters = db.relationship('Chapter', backref='subject', lazy=True,cascade="all, delete")
+    chapters = db.relationship('Chapter', backref='subject', lazy=True, cascade="all, delete")
 
 class Chapter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,9 +25,10 @@ class Quiz(db.Model):
     start_time = db.Column(db.Time, nullable=False)  
     time_duration = db.Column(db.Integer, nullable=False)
 
-    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id'), nullable=False)
+    chapter_id = db.Column(db.Integer, db.ForeignKey('chapter.id', ondelete="CASCADE"), nullable=False)
     questions = db.relationship('Question', backref='quiz', lazy=True, cascade="all, delete")
-    attempts = db.relationship('Scores', backref='quiz', lazy=True, cascade="all, delete")
+    attempts = db.relationship('QuizAttempt', backref='quiz', lazy=True, cascade="all, delete")
+    scores = db.relationship('Scores', backref='quiz', lazy=True, cascade="all, delete")
 
 
 
@@ -36,12 +37,13 @@ class Question(db.Model):
     question_statement = db.Column(db.Text, nullable=False)
     question_type = db.Column(db.String(10)) 
     score = db.Column(db.Float, default=1.0, nullable=False)
-    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
-    options = db.relationship('Option', backref='question', lazy=True,cascade="all, delete")
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id', ondelete="CASCADE"), nullable=False)
+    options = db.relationship('Option', backref='question', lazy=True, cascade="all, delete")
+    user_answers = db.relationship('UserAnswer', backref='question', lazy=True, cascade="all, delete")
 
 class Option(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     option_text = db.Column(db.String(250), nullable=False)
     is_correct = db.Column(db.Boolean, default=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id', ondelete="CASCADE"), nullable=False)
 

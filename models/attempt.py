@@ -16,8 +16,8 @@ class QuizAttempt(db.Model):
 class Scores(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id'), nullable=False)
-    attempt_id = db.Column(db.Integer, db.ForeignKey('quiz_attempt.id'), nullable=False)
+    quiz_id = db.Column(db.Integer, db.ForeignKey('quiz.id', ondelete="CASCADE"), nullable=False)
+    attempt_id = db.Column(db.Integer, db.ForeignKey('quiz_attempt.id', ondelete="CASCADE"), nullable=False)
     time_stamp_of_attempt = db.Column(db.DateTime, nullable=False)
     total_scored = db.Column(db.Float)
 
@@ -28,6 +28,5 @@ class UserAnswer(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('question.id'), nullable=False)
     selected_option_id = db.Column(db.Integer, db.ForeignKey('option.id'),nullable=True)
     score = db.Column(db.Float, default=0.0)
-    question = db.relationship("Question", backref="user_answers")
     selected_option = db.relationship("Option", backref="user_answers", foreign_keys=[selected_option_id])
     
